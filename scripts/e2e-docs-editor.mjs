@@ -221,8 +221,16 @@ try {
   await fromInclude.click()
   const flash = editor.locator('.view-overlays .doc-source-flash')
   await flash.waitFor()
-  const top = (l) => l.evaluate((e) => e.getBoundingClientRect().top)
-  assert.ok(Math.abs((await top(flash)) - (await top(includeLine))) < 2, 'o clique na prévia destaca a linha da diretiva')
+  // O Monaco rola até a linha com animação (ScrollType.Smooth): mede o destaque e a linha no mesmo quadro
+  // e espera a rolagem assentar, senão a medida pega o meio da animação (falhava no runner Linux).
+  const gap = async () =>
+    flash.evaluate((f, l) => Math.abs(f.getBoundingClientRect().top - l.getBoundingClientRect().top), await includeLine.elementHandle())
+  let distance = await gap()
+  for (let i = 0; i < 20 && distance >= 2; i++) {
+    await win.waitForTimeout(50)
+    distance = await gap()
+  }
+  assert.ok(distance < 2, 'o clique na prévia destaca a linha da diretiva')
   await fromInclude.dblclick()
   await editor.locator('.line-numbers.active-line-number', { hasText: /^27$/ }).waitFor()
   // O bloco da linha do cursor fica marcado na prévia.
