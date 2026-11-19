@@ -1,0 +1,11 @@
+{
+  "id": "connector.customers.v2",
+  "name": "Customers v2",
+  "version": "2.0.0",
+  "extends": "connector.corporate.base",
+  "config": { "basePath": "/customers/v2" },
+  "endpoints": [
+    { "id": "me", "name": "Cliente atual", "method": "GET", "path": "/me" },
+    { "id": "list", "name": "Listar clientes", "method": "GET", "path": "/?page=1&size=20" }
+  ]
+}

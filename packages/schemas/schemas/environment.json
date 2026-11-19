@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/environment.json",
+  "title": "Environment",
+  "description": "Ambiente versionado no Git. Variáveis com isSecret: true são commitadas com o valor __REQUIRED_SECRET__ e o valor real fica no cofre local cifrado, fora do projeto.",
+  "type": "object",
+  "required": ["id", "name", "variables"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "description": "Identificador do ambiente, ex.: env.development. Referenciado por secrets-engine.localMock.activeEnvironment.",
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "protected": {
+      "type": "boolean",
+      "description": "Ambiente protegido (produção): a IA pelo MCP e os hooks de webhook só montam o plano e validam, sem disparar, e todo disparo pelo app pede confirmação. Sem o campo, vale true quando o id ou o nome parecem de produção (prod, prd, production, producao, produção, live); false libera explicitamente."
+    },
+    "variables": {
+      "type": "object",
+      "propertyNames": {
+        "description": "Nomes no estilo de variável de ambiente: letras, dígitos e _, sem começar por dígito.",
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/variable" }
+    }
+  },
+  "$defs": {
+    "variableType": {
+      "title": "VariableType",
+      "type": "string",
+      "enum": ["string", "number", "boolean"]
+    },
+    "variable": {
+      "title": "EnvironmentVariable",
+      "type": "object",
+      "required": ["type", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "$ref": "#/$defs/variableType" },
+        "value": {
+          "description": "Valor da variável. Para segredos, sempre o template __REQUIRED_SECRET__.",
+          "type": ["string", "number", "boolean"]
+        },
+        "isSecret": {
+          "type": "boolean",
+          "default": false
+        },
+        "description": { "type": "string" },
+        "placeholder": {
+          "type": "string",
+          "description": "Texto de ajuda mostrado no wizard de onboarding ao preencher o valor."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "isSecret": { "const": true } }, "required": ["isSecret"] },
+          "then": {
+            "properties": {
+              "type": { "const": "string" },
+              "value": { "const": "__REQUIRED_SECRET__" }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": { "not": { "const": "__REQUIRED_SECRET__" } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "string" } } },
+          "then": { "properties": { "value": { "type": "string" } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "number" } } },
+          "then": { "properties": { "value": { "type": "number" } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "boolean" } } },
+          "then": { "properties": { "value": { "type": "boolean" } } }
+        }
+      ]
+    }
+  }
+}

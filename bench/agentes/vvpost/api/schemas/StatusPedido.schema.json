@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "enum": [
+    "aguardando_pagamento",
+    "pago",
+    "enviado",
+    "cancelado"
+  ],
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/loja.yaml",
+    "hash": "1237e1be7877b953"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "id": "connector.payments.v1",
+  "name": "Payments Service v1",
+  "version": "1.4.0",
+  "description": "Cobranças **PIX** e cartão. Herda a auth da base corporativa.",
+  "extends": "connector.corporate.base",
+  "config": { "basePath": "/payments/v1", "headers": { "X-Tenant": "acme-billing", "Content-Type": "application/json" } },
+  "endpoints": [
+    {
+      "id": "create_charge",
+      "name": "Criar cobrança",
+      "method": "POST",
+      "path": "/charges",
+      "bodySchema": {
+        "type": "object",
+        "required": ["amount", "currency", "customer_id", "method"],
+        "properties": {
+          "amount": { "type": "number", "description": "Valor em reais" },
+          "currency": { "type": "string", "enum": ["BRL", "USD"] },
+          "customer_id": { "type": "string" },
+          "method": { "type": "string", "enum": ["PIX", "CREDIT_CARD"] }
+        }
+      },
+      "body": { "amount": 150, "currency": "BRL", "customer_id": "cust_123", "method": "PIX" },
+      "scenarios": [
+        {
+          "id": "tc_pix_ok",
+          "name": "Sucesso com PIX",
+          "assertions": [
+            { "target": "status", "operator": "equals", "expected": 201 },
+            { "target": "body.status", "operator": "equals", "expected": "approved" },
+            { "target": "responseTimeMs", "operator": "lessThan", "expected": 2000 }
+          ]
+        },
+        {
+          "id": "tc_invalid_amount",
+          "name": "Valor inválido",
+          "overrides": { "body": { "amount": -10, "currency": "BRL", "customer_id": "cust_123", "method": "PIX" } },
+          "assertions": [
+            { "target": "status", "operator": "equals", "expected": 400 },
+            { "target": "body.error", "operator": "equals", "expected": "INVALID_AMOUNT" }
+          ]
+        },
+        {
+          "id": "tc_expected_failure",
+          "name": "Cartão recusado (falha de propósito)",
+          "overrides": { "body": { "amount": 99999, "currency": "BRL", "customer_id": "cust_123", "method": "CREDIT_CARD" } },
+          "assertions": [
+            { "target": "status", "operator": "equals", "expected": 201 },
+            { "target": "body.status", "operator": "equals", "expected": "approved" }
+          ]
+        }
+      ]
+    },
+    { "id": "get_charge", "name": "Consultar cobrança", "method": "GET", "path": "/charges/{{charge_id}}" },
+    { "id": "list_refunds", "name": "Listar estornos", "method": "GET", "path": "/refunds?status=done&limit=20" }
+  ]
+}

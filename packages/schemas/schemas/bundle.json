@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/bundle.json",
+  "title": "Bundle",
+  "description": "Pacote de exportação do VVPost (*.vvpost.bundle.json): conectores, ambientes, fluxos e documentação de um projeto, ou de parte dele, num arquivo só, para importar em outro projeto. Nunca carrega valor de segredo: variáveis com isSecret vão com __REQUIRED_SECRET__ e ficam pendentes no projeto que importa. Cada documento segue o próprio schema (connector.json, environment.json, flow.json) e é validado com ele ao importar.",
+  "type": "object",
+  "required": ["$schema", "exportedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URL do schema do pacote. Obrigatória: é ela que identifica o arquivo como pacote do VVPost."
+    },
+    "name": { "type": "string", "description": "Nome do pacote, para quem importa." },
+    "description": { "type": "string" },
+    "exportedAt": { "type": "string", "description": "Quando o pacote foi gerado (ISO 8601)." },
+    "generator": { "type": "string", "description": "Quem gerou, ex.: vvpost 0.1.0." },
+    "connectors": {
+      "type": "array",
+      "description": "Conectores (connector.json), pai antes de filho.",
+      "items": { "type": "object" }
+    },
+    "environments": {
+      "type": "array",
+      "description": "Ambientes (environment.json), com os segredos como __REQUIRED_SECRET__.",
+      "items": { "type": "object" }
+    },
+    "flows": {
+      "type": "array",
+      "description": "Fluxos do Flow Studio (flow.json).",
+      "items": { "type": "object" }
+    },
+    "docs": {
+      "type": "object",
+      "description": "Documentação em Markdown por id de conector (o arquivo .connector.vvpost.md ao lado do conector).",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

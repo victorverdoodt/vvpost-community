@@ -1,0 +1,43 @@
+{
+  "name": "vvpost",
+  "version": "0.1.0",
+  "description": "CLI do VVPost para CI/CD: roda cenários e fluxos de um workspace VVPost, com JUnit, JSON e segredos do CI em memória. Inclui o servidor MCP (vvpost-mcp).",
+  "license": "Apache-2.0",
+  "author": "Victor Verdoodt",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/cli.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victorverdoodt/vvpost-community.git",
+    "directory": "packages/cli"
+  },
+  "bugs": "https://github.com/victorverdoodt/vvpost-community/issues",
+  "keywords": [
+    "api",
+    "testing",
+    "ci",
+    "junit",
+    "mcp",
+    "postman",
+    "cli"
+  ],
+  "type": "commonjs",
+  "bin": {
+    "vvpost": "bin/vvpost.js",
+    "vvpost-mcp": "bin/vvpost-mcp.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "plugins"
+  ],
+  "scripts": {
+    "prepublishOnly": "node -e \"require('fs').accessSync('dist/main/cli.js')\" || (echo \"Rode npm run build:cli na raiz do repositório antes de publicar.\" && exit 1)"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

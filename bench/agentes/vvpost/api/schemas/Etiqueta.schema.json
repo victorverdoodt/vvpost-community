@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "required": [
+    "codigo",
+    "pdfUrl"
+  ],
+  "properties": {
+    "codigo": {
+      "type": "string"
+    },
+    "pdfUrl": {
+      "type": "string",
+      "format": "uri"
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/transnorte.yaml",
+    "hash": "575f6f70bf75af51"
+  }
+}

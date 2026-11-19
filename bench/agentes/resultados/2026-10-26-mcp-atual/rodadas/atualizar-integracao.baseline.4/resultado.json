@@ -1,0 +1,111 @@
+{
+  "rodada": "atualizar-integracao.baseline.4",
+  "tarefa": "atualizar-integracao",
+  "variante": "baseline",
+  "n": 4,
+  "inicio": "2026-10-26T13:25:18.498Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 13,
+  "passos": 12,
+  "passosMcp": 0,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Bash": 7,
+    "Edit": 4
+  },
+  "tokens": {
+    "entrada": 16,
+    "escritaCache": 15172,
+    "leituraCache": 163534,
+    "saida": 4114,
+    "total": 182836
+  },
+  "custoUsd": 0.1182134,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1182134
+  },
+  "duracaoMs": 27918,
+  "terminou": true,
+  "homolog": {
+    "porta": 44795,
+    "chave": "hk-dcf7ac1388dcc6fe246cc2fc",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O cliente da TransNorte agora usa a base `https://api.transnorte.example/v3` e manda o header `X-Cliente-Id` em toda chamada, com o valor de `TRANSNORTE_CLIENTE_ID`. Os 11 testes passam e não sobrou nenhuma menção a `v2` no código, nos docs nem no OpenAPI. Não rodei contra a API real da TransNorte, só os testes.\n\n- **Cliente** (`src/frete/transnorte.js`): `criarTransNorte` aceita `clienteId`, que por padrão vem de `TRANSNORTE_CLIENTE_ID`. Sem a variável, o header vai vazio, do mesmo jeito que já acontece com a chave de API.\n- **OpenAPI** (`openapi/transnorte.yaml`): versão `3.0` e servidor `/v3`. Criei o esquema de segurança `clienteId` (`X-Cliente-Id`) e as seis rotas passam a exigir esse esquema junto com `apiKey`.\n- **Docs**: `docs/frete.md` ganhou `TRANSNORTE_CLIENTE_ID` na tabela de configuração e a URL padrão `/v3`. `docs/arquitetura.md` agora cita `X-Cliente-Id` ao lado de `X-Api-Key`.\n- **Testes** (`test/frete.test.js`): o teste da TransNorte confere o header `x-cliente-id` e que a URL termina em `/v3/cotacoes`.\n\nNão mexi em `.env.homolog` nem fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

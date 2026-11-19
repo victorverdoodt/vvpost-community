@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck, build e benchmark (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: E2E (Linux, display virtual)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:e2e
+      # O runner Windows abre com tela de 1024x768, menor que a janela do app (1280x800); o Linux
+      # roda no Xvfb de 1280x1024. Mesma ordem de tamanho nos dois para os E2E verem o mesmo layout.
+      - name: Resolução da tela (Windows)
+        if: runner.os == 'Windows'
+        run: Set-DisplayResolution -Width 1920 -Height 1080 -Force
+      - name: E2E (Windows)
+        if: runner.os == 'Windows'
+        run: npm run test:e2e
+      - name: Benchmark de startup (Linux, display virtual)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run bench
+      - name: Benchmark de startup (Windows)
+        if: runner.os == 'Windows'
+        run: npm run bench
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-results-${{ matrix.os }}
+          path: bench-results.json
+          if-no-files-found: ignore

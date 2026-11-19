@@ -1,0 +1,15 @@
+headers {
+  X-Cliente: vvpost
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{process.env.LOJA_TOKEN}}
+}
+
+docs {
+  API da loja, pela coleção do Bruno.
+}

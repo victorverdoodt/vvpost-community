@@ -1,0 +1,122 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/plugin.json",
+  "id": "vvpost-plugin-kafka",
+  "name": "Kafka",
+  "version": "1.0.0",
+  "description": "Adapter de protocolo Kafka: produz uma mensagem, lê as últimas (ou a partir do início, de um horário, de um offset, ou as que chegarem) e lista os tópicos. O conector do nó dá o broker (kafka:// ou kafkas://), a auth (SASL PLAIN, SCRAM ou OAUTHBEARER) e o mTLS.",
+  "author": "VVPost",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/plugins.md",
+  "main": "index.js",
+  "apiVersion": 1,
+  "permissions": {
+    "network": ["connector", "config:brokers"],
+    "connectorCredentials": true
+  },
+  "contributes": {
+    "adapters": [
+      {
+        "protocol": "kafka",
+        "title": "Kafka",
+        "description": "Fala com um cluster Kafka (1.0 ou mais novo). A saída tem data: em Produzir, { topic, partition, offset, timestamp }; em Consumir, a lista de mensagens { partition, offset, timestamp, key, value, headers }; em Tópicos, os brokers e as partições.",
+        "fields": [
+          {
+            "key": "operation",
+            "label": "Operação",
+            "type": "select",
+            "required": true,
+            "default": "produce",
+            "options": [
+              { "value": "produce", "label": "Produzir" },
+              { "value": "consume", "label": "Consumir" },
+              { "value": "topics", "label": "Tópicos" }
+            ]
+          },
+          { "key": "topic", "label": "Tópico", "type": "text", "placeholder": "pedidos", "description": "Obrigatório para produzir e consumir. Em Tópicos, vazio lista todos." },
+          { "key": "key", "label": "Chave", "type": "text", "description": "Produzir: a chave da mensagem (escolhe a partição como o cliente Java, pelo murmur2)." },
+          {
+            "key": "value",
+            "label": "Valor",
+            "type": "json",
+            "description": "Produzir: um texto vai como está; outro valor JSON vai serializado. Vazio produz uma mensagem sem valor (tombstone)."
+          },
+          { "key": "headers", "label": "Headers", "type": "json", "description": "Produzir: objeto { \"nome\": \"valor\" }." },
+          { "key": "partition", "label": "Partição", "type": "number", "description": "Opcional. Produzir: força a partição. Consumir: lê só dela (obrigatória para ler a partir de um offset)." },
+          {
+            "key": "acks",
+            "label": "Confirmação",
+            "type": "select",
+            "default": "all",
+            "options": [
+              { "value": "all", "label": "Todas as réplicas (acks=all)" },
+              { "value": "leader", "label": "Só o líder (acks=1)" },
+              { "value": "none", "label": "Nenhuma (acks=0)" }
+            ]
+          },
+          {
+            "key": "compression",
+            "label": "Compressão",
+            "type": "select",
+            "default": "none",
+            "description": "Produzir. Ao consumir, gzip, snappy, lz4 e zstd são lidos sozinhos.",
+            "options": [
+              { "value": "none", "label": "Nenhuma" },
+              { "value": "gzip", "label": "gzip" },
+              { "value": "zstd", "label": "zstd" }
+            ]
+          },
+          {
+            "key": "from",
+            "label": "Ler a partir de",
+            "type": "select",
+            "default": "last",
+            "options": [
+              { "value": "last", "label": "As últimas mensagens" },
+              { "value": "earliest", "label": "O início" },
+              { "value": "latest", "label": "Agora (espera as que chegarem)" },
+              { "value": "timestamp", "label": "Um horário" },
+              { "value": "offset", "label": "Um offset" }
+            ]
+          },
+          { "key": "count", "label": "Quantidade", "type": "number", "default": 10, "description": "Consumir: quantas mensagens no máximo (até 1000)." },
+          { "key": "timestamp", "label": "Horário", "type": "text", "placeholder": "2026-01-31T12:00:00Z", "description": "Consumir a partir de um horário: data ISO ou milissegundos." },
+          { "key": "offset", "label": "Offset", "type": "number", "description": "Consumir a partir de um offset da partição escolhida." },
+          { "key": "maxWaitMs", "label": "Espera (ms)", "type": "number", "default": 1000, "description": "Consumir a partir de agora: quanto esperar por mensagens novas (até o timeout do nó)." },
+          {
+            "key": "format",
+            "label": "Formato do valor",
+            "type": "select",
+            "default": "auto",
+            "options": [
+              { "value": "auto", "label": "Automático (JSON, senão texto)" },
+              { "value": "json", "label": "JSON" },
+              { "value": "text", "label": "Texto" },
+              { "value": "base64", "label": "base64" }
+            ],
+            "description": "Como ler o valor das mensagens. Ao produzir, base64 decodifica o texto do Valor antes de enviar."
+          },
+          {
+            "key": "sasl",
+            "label": "Mecanismo SASL",
+            "type": "select",
+            "default": "auto",
+            "options": [
+              { "value": "auto", "label": "Automático" },
+              { "value": "PLAIN", "label": "PLAIN" },
+              { "value": "SCRAM-SHA-256", "label": "SCRAM-SHA-256" },
+              { "value": "SCRAM-SHA-512", "label": "SCRAM-SHA-512" },
+              { "value": "OAUTHBEARER", "label": "OAUTHBEARER" }
+            ],
+            "description": "Com auth no conector. Automático: basic usa PLAIN (ou SCRAM, se o broker só aceitar SCRAM); bearer e oauth2 usam OAUTHBEARER."
+          },
+          {
+            "key": "brokers",
+            "label": "Brokers",
+            "type": "text",
+            "placeholder": "b1.kafka.local:9092, b2.kafka.local:9092",
+            "description": "Os brokers que o cluster anuncia, quando não são o do conector (o plugin só conecta ao conector e a estes). Aceita *.dominio."
+          }
+        ]
+      }
+    ]
+  }
+}

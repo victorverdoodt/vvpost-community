@@ -1,0 +1,13 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/connector.json",
+  "id": "connector.corporate.base",
+  "name": "Corporate Base",
+  "version": "1.4.0",
+  "config": {
+    "baseUrl": "{{BASE_URL}}",
+    "headers": {
+      "Authorization": "Bearer {{ACCESS_TOKEN}}",
+      "X-Correlation-Id": "{{$uuid}}"
+    }
+  }
+}

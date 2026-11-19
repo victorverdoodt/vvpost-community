@@ -1,0 +1,109 @@
+{
+  "rodada": "atualizar-integracao.baseline.2",
+  "tarefa": "atualizar-integracao",
+  "variante": "baseline",
+  "n": 2,
+  "inicio": "2026-10-26T13:20:54.603Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 14,
+  "passos": 13,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Bash": 6,
+    "Edit": 6
+  },
+  "tokens": {
+    "entrada": 14,
+    "escritaCache": 16227,
+    "leituraCache": 147636,
+    "saida": 3981,
+    "total": 167858
+  },
+  "custoUsd": 0.11950960000000001,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.11950960000000001
+  },
+  "duracaoMs": 31915,
+  "terminou": true,
+  "homolog": {
+    "porta": 37133,
+    "chave": "hk-a832b3c5d5bcf26d0c7f3583",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O cliente da TransNorte agora usa a base `https://api.transnorte.example/v3` e manda o header `X-Cliente-Id` em toda chamada. Os 11 testes passam e não sobrou nenhuma menção a `v2` no repositório.\n\n- **Cliente:** em `src/frete/transnorte.js`, o id vem de `TRANSNORTE_CLIENTE_ID`. Se a variável não estiver definida, o header vai vazio, como já acontece com a chave de API.\n- **Teste:** `test/frete.test.js` agora confere o header `x-cliente-id` e a URL com `/v3`.\n- **OpenAPI:** em `openapi/transnorte.yaml`, a versão passou para 3.0 e o servidor para `/v3`. Criei um esquema de segurança `clienteId` (header `X-Cliente-Id`) e o apliquei em todas as operações, não só na cotação, porque \"toda chamada\" exige o header.\n- **Páginas:** `docs/frete.md` ganhou `TRANSNORTE_CLIENTE_ID` na tabela de configuração e a nova URL padrão. `docs/arquitetura.md` agora cita a API v3 e os dois headers.\n\nNão mexi em `openapi/loja.yaml`, no README nem no guia de integração, porque a API da Loja não mudou.\n\nNão fiz nenhuma chamada real à API de homologação.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "rodada": "remover-dependencia.baseline.5",
+  "tarefa": "remover-dependencia",
+  "variante": "baseline",
+  "n": 5,
+  "inicio": "2026-10-26T13:25:54.708Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 38,
+  "passos": 37,
+  "passosMcp": 0,
+  "errosDeFerramenta": 6,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash",
+    "Write",
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 2,
+    "Bash": 10,
+    "Write": 3,
+    "Read": 6,
+    "Edit": 16
+  },
+  "tokens": {
+    "entrada": 32,
+    "escritaCache": 32289,
+    "leituraCache": 470659,
+    "saida": 13823,
+    "total": 516803
+  },
+  "custoUsd": 0.3145159,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.3145159
+  },
+  "duracaoMs": 101314,
+  "terminou": true,
+  "homolog": {
+    "porta": 45977,
+    "chave": "hk-57e2dfd11e2b969638c871de",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Removi a integração com a EntregaJá. O frete agora é cotado só pela TransNorte. Se ela falhar, o pedido continua sendo recusado com 503 `FRETE_INDISPONIVEL`. `npm test` passa (10 testes). Busquei por \"EntregaJá\" em todo o repositório e não sobrou nenhuma menção.\n\n**Código**\n- Apaguei `src/frete/entregaja.js`.\n- `criarFrete` em `src/frete/index.js` agora recebe um único `provedor` (padrão: TransNorte), no lugar da lista `provedores`. A mensagem do 503 passa a ser `transnorte: <erro>`.\n- As variáveis `ENTREGAJA_URL` e `ENTREGAJA_TOKEN` deixam de ser usadas.\n\n**Testes** (`test/frete.test.js`)\n- Troquei os 3 testes da EntregaJá e do fallback por dois: um para a cotação da TransNorte e outro para a falha sem reserva.\n\n**Documentação**\n- Apaguei `openapi/entregaja.yaml`.\n- Em `openapi/loja.yaml`, o enum de `transportadora` agora é só `[transnorte]` e as descrições foram ajustadas.\n- Atualizei `docs/arquitetura.md` (texto, diagrama e tabela de componentes), `docs/frete.md`, `docs/guia-de-integracao.md` e o `README.md`.\n- Ajustei também o `CLAUDE.md`, que ainda listava `openapi/entregaja.yaml`.\n\nNão alterei a versão do `openapi/loja.yaml` (1.3.0), mas restringir o enum de `transportadora` pode merecer um aumento de versão.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

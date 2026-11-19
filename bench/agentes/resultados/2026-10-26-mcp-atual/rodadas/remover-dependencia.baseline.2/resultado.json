@@ -1,0 +1,109 @@
+{
+  "rodada": "remover-dependencia.baseline.2",
+  "tarefa": "remover-dependencia",
+  "variante": "baseline",
+  "n": 2,
+  "inicio": "2026-10-26T13:19:29.556Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 23,
+  "passos": 22,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Bash": 5,
+    "Edit": 16
+  },
+  "tokens": {
+    "entrada": 14,
+    "escritaCache": 19887,
+    "leituraCache": 153930,
+    "saida": 7145,
+    "total": 180976
+  },
+  "custoUsd": 0.16641899999999998,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.16641899999999998
+  },
+  "duracaoMs": 49790,
+  "terminou": true,
+  "homolog": {
+    "porta": 44209,
+    "chave": "hk-df319e0f247ff63636879153",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "A integração com a EntregaJá foi removida. O frete agora é cotado só pela TransNorte e, se ela falhar, o pedido continua sendo recusado com `503 FRETE_INDISPONIVEL`. Os 10 testes passam e uma busca por \"entregaj\" no repositório não encontra mais nada.\n\n- **Código:** apaguei `src/frete/entregaja.js`, e `src/frete/index.js` passou a usar só a TransNorte. O arquivo `src/pedidos.js` não mudou, porque o 503 já era tratado lá.\n- **Testes:** em `test/frete.test.js`, tirei os testes da EntregaJá e acrescentei dois para a TransNorte: um com a cotação dela e outro em que o erro dela sobe até a recusa.\n- **Especificação:**\n  - Apaguei `openapi/entregaja.yaml`.\n  - Em `openapi/loja.yaml`, a descrição do `POST /pedidos` mudou e o campo `transportadora` agora só aceita `transnorte`.\n- **Páginas:**\n  - Atualizei `docs/frete.md`, incluindo as variáveis `ENTREGAJA_URL` e `ENTREGAJA_TOKEN`, que saíram da tabela.\n  - Atualizei também `docs/arquitetura.md` (texto, diagrama e tabela de componentes), `docs/guia-de-integracao.md`, o `README.md` e a lista de arquivos de especificação no `CLAUDE.md`.\n\nOs arquivos apagados e as demais mudanças continuam sem commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Loja exportada",
+  "version": "1",
+  "items": [
+    {
+      "type": "http-request",
+      "name": "Ping",
+      "seq": 1,
+      "request": {
+        "url": "{{baseUrl}}/ping",
+        "method": "GET",
+        "headers": [{ "name": "Accept", "value": "text/plain", "enabled": true }],
+        "params": [],
+        "body": { "mode": "none" },
+        "auth": { "mode": "basic", "basic": { "username": "loja", "password": "senha-basic" } },
+        "script": {},
+        "vars": {},
+        "assertions": [{ "name": "res.status", "value": "eq 204", "enabled": true }],
+        "tests": "",
+        "docs": ""
+      }
+    },
+    {
+      "type": "folder",
+      "name": "Admin",
+      "root": { "request": { "auth": { "mode": "digest", "digest": { "username": "admin", "password": "{{adminPassword}}" } } } },
+      "items": [
+        {
+          "type": "graphql-request",
+          "name": "Usuários",
+          "request": {
+            "url": "{{baseUrl}}/graphql",
+            "method": "POST",
+            "headers": [],
+            "body": { "mode": "graphql", "graphql": { "query": "{ usuarios { id } }", "variables": "" } },
+            "auth": { "mode": "inherit" }
+          }
+        },
+        { "type": "grpc-request", "name": "Streaming" }
+      ]
+    }
+  ],
+  "environments": [
+    { "name": "Local", "variables": [{ "name": "baseUrl", "value": "http://localhost:3000", "enabled": true, "secret": false }, { "name": "adminPassword", "value": "", "enabled": true, "secret": true }] }
+  ]
+}

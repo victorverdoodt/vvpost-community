@@ -1,0 +1,111 @@
+{
+  "rodada": "alterar-endpoint.baseline.3",
+  "tarefa": "alterar-endpoint",
+  "variante": "baseline",
+  "n": 3,
+  "inicio": "2026-10-26T13:21:06.059Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 13,
+  "passos": 12,
+  "passosMcp": 0,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 3,
+    "Bash": 5,
+    "Read": 4
+  },
+  "tokens": {
+    "entrada": 14,
+    "escritaCache": 20671,
+    "leituraCache": 161232,
+    "saida": 5069,
+    "total": 186986
+  },
+  "custoUsd": 0.1495252,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1495252
+  },
+  "duracaoMs": 42523,
+  "terminou": true,
+  "homolog": {
+    "porta": 44791,
+    "chave": "hk-384456b419a94ca87f871a75",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, o campo `cep` agora se chama `cepEntrega`, com as mesmas regras e ainda obrigatório. O pedido devolvido traz `cepEntrega` no lugar de `cep` e o novo `prazoEntregaDias`. `npm test` passa (11 testes). Não testei contra a API de homologação.\n\n- **Código (`src/pedidos.js`):** a validação lê `entrada.cepEntrega`. O pedido devolve `cepEntrega` e `prazoEntregaDias`, que vem do `prazoDias` da cotação. As integrações com as transportadoras não mudaram.\n- **Testes (`test/pedidos.test.js`):** os corpos de requisição usam `cepEntrega` e o teste de criação confere `cepEntrega` e `prazoEntregaDias`.\n- **OpenAPI (`openapi/loja.yaml`):** `NovoPedido` e `Pedido` usam `cepEntrega`, e `Pedido` ganhou `prazoEntregaDias` como inteiro obrigatório. Os exemplos também foram atualizados.\n- **Páginas:** `docs/guia-de-integracao.md` e `docs/frete.md` foram atualizados. Procurei menções restantes ao nome antigo e não sobrou nenhuma no código da Loja nem nas páginas e specs que descrevem a Loja. Os `cep` que sobraram são da API das transportadoras, que não mudou.\n\nO número em `prazoEntregaDias` é repassado sem conversão, mas a unidade depende de quem cotou. A TransNorte informa dias úteis e a EntregaJá informa dias corridos. Deixei isso escrito em `docs/frete.md`.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

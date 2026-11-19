@@ -1,0 +1,60 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.gerarEtiqueta",
+  "name": "Gera a etiqueta de um envio",
+  "extends": "transnorte",
+  "order": 6,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "POST",
+        "url": "/etiquetas",
+        "body": {
+          "pedido": "ped-1001",
+          "cepDestino": "01310100",
+          "pesoKg": 0.7
+        },
+        "bodySchema": {
+          "type": "object",
+          "required": [
+            "pedido",
+            "cepDestino",
+            "pesoKg"
+          ],
+          "properties": {
+            "pedido": {
+              "type": "string"
+            },
+            "cepDestino": {
+              "type": "string",
+              "pattern": "^\\d{8}$"
+            },
+            "pesoKg": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-201",
+      "name": "201 Etiqueta gerada",
+      "status": 201,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "codigo": "string",
+        "pdfUrl": "https://example.com"
+      },
+      "schema": {
+        "$ref": "schema:Etiqueta"
+      }
+    }
+  ]
+}

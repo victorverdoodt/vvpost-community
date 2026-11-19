@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "situacao",
+    "data"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "situacao": {
+      "type": "string",
+      "enum": [
+        "agendada",
+        "feita",
+        "cancelada"
+      ]
+    },
+    "data": {
+      "type": "string",
+      "format": "date"
+    },
+    "volumes": {
+      "type": "integer"
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/transnorte.yaml",
+    "hash": "2004f3c8ee5ef95b"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "required": [
+    "itens",
+    "cep"
+  ],
+  "properties": {
+    "itens": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "produtoId"
+        ],
+        "properties": {
+          "produtoId": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          }
+        }
+      }
+    },
+    "cep": {
+      "type": "string",
+      "pattern": "^\\d{5}-?\\d{3}$",
+      "description": "CEP de entrega, com ou sem hífen"
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/loja.yaml",
+    "hash": "9f0c51363227340c"
+  }
+}

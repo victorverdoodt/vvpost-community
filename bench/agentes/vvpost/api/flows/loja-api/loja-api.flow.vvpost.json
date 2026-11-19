@@ -1,0 +1,17 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "loja-api",
+  "name": "Loja API",
+  "description": "API de pedidos da Loja. Calcula o frete com as transportadoras parceiras.",
+  "version": "1.3.0",
+  "defaults": {
+    "baseUrl": "{{LOJA_URL}}",
+    "auth": {
+      "type": "apiKey",
+      "name": "X-Api-Key",
+      "value": "{{LOJA_API_KEY}}",
+      "in": "header"
+    }
+  },
+  "nodes": []
+}

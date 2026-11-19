@@ -1,0 +1,150 @@
+{
+  "rodada": "remover-dependencia.vvpost.6",
+  "tarefa": "remover-dependencia",
+  "variante": "vvpost",
+  "n": 6,
+  "inicio": "2026-10-26T13:28:41.522Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 22,
+  "passos": 21,
+  "passosMcp": 6,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 8,
+    "ToolSearch": 1,
+    "mcp__vvpost__find_references": 2,
+    "Write": 1,
+    "mcp__vvpost__get_source": 2,
+    "Read": 2,
+    "Edit": 3,
+    "mcp__vvpost__edit_project": 2
+  },
+  "tokens": {
+    "entrada": 22,
+    "escritaCache": 31464,
+    "leituraCache": 346893,
+    "saida": 8012,
+    "total": 386391
+  },
+  "custoUsd": 0.24070929999999996,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.24070929999999996
+  },
+  "duracaoMs": 58744,
+  "terminou": true,
+  "homolog": {
+    "porta": 35905,
+    "chave": "hk-d5aad6fa70ae2de88b580556",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Removi a EntregaJá. O frete agora é cotado só pela TransNorte e, se ela falhar, o pedido continua sendo recusado com 503 `FRETE_INDISPONIVEL`. Os 9 testes passam. Uma busca no repositório e outra no projeto do VVPost não acham mais nenhuma menção à EntregaJá. Não fiz commit.\n\n- **Código:** apaguei `src/frete/entregaja.js`. `src/frete/index.js` agora usa só a TransNorte, e o README foi ajustado.\n- **Testes:** em `test/frete.test.js` saíram os dois testes da EntregaJá (o do cliente e o do fallback). O teste de \"todas falham\" virou \"a TransNorte falha\": ele confere que a cotação falha com `transnorte: fora`. O teste do 503 em `test/pedidos.test.js` não mudou.\n- **Catálogo do VVPost:** num único `edit_project`, apaguei o conector `entregaja`, que levou junto seus dois arquivos de fluxo. Tirei a variável `ENTREGAJA_TOKEN` dos ambientes `homolog` e `producao`. Reescrevi a descrição do endpoint `criarPedido` e deixei o enum `transportadora` do schema `Pedido` só com `transnorte`.\n- **Páginas:** `docs/frete.md`, `docs/arquitetura.md` (texto, diagrama C4 e tabela de componentes) e `docs/projeto.md` não citam mais a EntregaJá. Não exportei o PDF porque a resposta de escrita não trouxe `stalePdf`.\n\nSe existirem pedidos antigos gravados com `transportadora: \"entregaja\"`, eles deixam de bater com o schema `Pedido`, que agora só aceita `transnorte`. Não verifiquei se esses pedidos existem.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

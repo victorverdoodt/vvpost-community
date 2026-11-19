@@ -1,0 +1,148 @@
+{
+  "rodada": "remover-dependencia.vvpost.4",
+  "tarefa": "remover-dependencia",
+  "variante": "vvpost",
+  "n": 4,
+  "inicio": "2026-10-26T13:23:53.063Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 19,
+  "passos": 18,
+  "passosMcp": 3,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "ToolSearch": 1,
+    "Read": 4,
+    "Bash": 5,
+    "Edit": 4,
+    "mcp__vvpost__find_references": 1,
+    "mcp__vvpost__edit_project": 2
+  },
+  "tokens": {
+    "entrada": 18,
+    "escritaCache": 27863,
+    "leituraCache": 260911,
+    "saida": 7317,
+    "total": 296109
+  },
+  "custoUsd": 0.21074910000000002,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.21074910000000002
+  },
+  "duracaoMs": 52545,
+  "terminou": true,
+  "homolog": {
+    "porta": 39121,
+    "chave": "hk-c4eaf498bae3b03d8dc22e4d",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Removi a EntregaJá do código, dos testes e da documentação. O frete agora é cotado só pela TransNorte. Se ela falhar, o pedido continua sendo recusado com `503 FRETE_INDISPONIVEL`, e o teste de `pedidos.test.js` que confere isso segue passando. A suíte tem 9 testes e todos passam. Não deixei nenhuma menção à EntregaJá no repositório. Não commitei nada.\n\n**Código e testes**\n- Apaguei `src/frete/entregaja.js`. Em `src/frete/index.js` a lista de provedores ficou só com a TransNorte.\n- Em `test/frete.test.js`, tirei os testes da EntregaJá e do fallback. Troquei o teste de \"todas falham\" por um que confere a falha da TransNorte, já que agora há um provedor só.\n- O `README.md` não cita mais a EntregaJá.\n\n**Projeto no VVPost** (um `edit_project` só, mais as páginas)\n- Removi o conector `entregaja` e a variável `ENTREGAJA_TOKEN` de `homolog` e `producao`.\n- Em `Pedido.transportadora`, o enum agora aceita só `transnorte`.\n- Na descrição do fluxo `criarPedido` e nas páginas `frete.md`, `arquitetura.md` e `projeto.md`, tirei o texto, o diagrama, a tabela de variáveis e a diretiva do conector. O fluxo agora descreve a recusa com 503 quando a TransNorte falha.\n- A resposta não trouxe `documentErrors` nem `stalePdf`, então não exportei o PDF, como o `CLAUDE.md` pede.\n\nNa cotação, o texto da mensagem de erro do 503 ainda lista a falha por transportadora, só que agora com uma entrada, a da TransNorte.\n\nFora do repositório, `ENTREGAJA_URL` e `ENTREGAJA_TOKEN` talvez ainda estejam configuradas nos ambientes de execução. Vale limpar lá.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

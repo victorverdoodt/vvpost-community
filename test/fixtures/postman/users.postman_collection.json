@@ -1,0 +1,67 @@
+{
+  "info": {
+    "name": "Usuários",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+  "item": [
+    {
+      "name": "Cadastro",
+      "item": [
+        {
+          "name": "Buscar usuário",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.response.to.have.status(200);"] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/users/:id" }
+        },
+        {
+          "name": "Buscar usuário - não encontrado",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.response.to.have.status(404);"] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/users/999" }
+        },
+        {
+          "name": "Criar usuário",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.response.to.have.status(201);"] } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "body": { "mode": "raw", "raw": "{\"name\": \"Ana\", \"email\": \"ana@example.com\"}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Criar usuário - sem email",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.response.to.have.status(400);"] } }],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "body": { "mode": "raw", "raw": "{\"name\": \"Ana\"}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Criar usuário (com trace)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [{ "key": "X-Trace", "value": "abc" }],
+            "body": { "mode": "raw", "raw": "{\"name\": \"Ana\", \"email\": \"ana@example.com\"}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Listar usuários",
+          "request": { "method": "GET", "url": "{{baseUrl}}/users?page=1&size=20" }
+        },
+        {
+          "name": "Listar usuários: página 2",
+          "request": { "method": "GET", "url": "{{baseUrl}}/users?page=2" }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        { "name": "Remover usuário", "request": { "method": "DELETE", "url": "{{baseUrl}}/users/:id" } },
+        { "name": "Auditoria", "request": { "method": "GET", "url": "{{baseUrl}}/audit" } }
+      ]
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "https://api.example.com" }]
+}

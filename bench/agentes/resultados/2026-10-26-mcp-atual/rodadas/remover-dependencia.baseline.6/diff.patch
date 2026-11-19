@@ -1,0 +1,296 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index ff8a0ca..6debf61 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -4,8 +4,8 @@
+ 
+ A documentação da API fica neste repositório e anda junto com o código:
+ 
+-- A especificação OpenAPI da Loja fica em `openapi/loja.yaml`, e as APIs das transportadoras que o
+-  código chama em `openapi/transnorte.yaml` e `openapi/entregaja.yaml`.
++- A especificação OpenAPI da Loja fica em `openapi/loja.yaml`, e a API da transportadora que o
++  código chama em `openapi/transnorte.yaml`.
+ - As páginas ficam em `docs/` (arquitetura, frete, guia de integração) e no `README.md`.
+ - Ao mudar o código (endpoints, campos, integrações, arquitetura), atualize no mesmo trabalho, sem
+   esperar pedido, a especificação e as páginas que descrevem o que mudou, e confira que nenhuma
+diff --git a/README.md b/README.md
+index 35a1320..7db3e19 100644
+--- a/README.md
++++ b/README.md
+@@ -1,14 +1,14 @@
+ # Loja API
+ 
+ API de pedidos da Loja: produtos, pedidos, cancelamento e cotação de frete com as transportadoras
+-parceiras (TransNorte e, como reserva, EntregaJá).
++(TransNorte).
+ 
+ ```bash
+ npm start   # http://localhost:3000
+ npm test
+ ```
+ 
+-- Especificação da API: [`openapi/loja.yaml`](openapi/loja.yaml); APIs das transportadoras em
+-  [`openapi/transnorte.yaml`](openapi/transnorte.yaml) e [`openapi/entregaja.yaml`](openapi/entregaja.yaml).
++- Especificação da API: [`openapi/loja.yaml`](openapi/loja.yaml); API da transportadora em
++  [`openapi/transnorte.yaml`](openapi/transnorte.yaml).
+ - Documentação: [arquitetura](docs/arquitetura.md), [frete](docs/frete.md) e
+   [guia de integração](docs/guia-de-integracao.md).
+diff --git a/docs/arquitetura.md b/docs/arquitetura.md
+index e28c6d1..7fb3a94 100644
+--- a/docs/arquitetura.md
++++ b/docs/arquitetura.md
+@@ -1,8 +1,7 @@
+ # Arquitetura
+ 
+-A Loja API recebe os pedidos do site e do app, guarda os pedidos e cota o frete com as
+-transportadoras parceiras. A TransNorte é a transportadora principal; a EntregaJá é a reserva,
+-chamada só quando a TransNorte não responde.
++A Loja API recebe os pedidos do site e do app, guarda os pedidos e cota o frete com a
++TransNorte.
+ 
+ ```mermaid
+ C4Context
+@@ -10,10 +9,8 @@ C4Context
+   Person(cliente, "Cliente", "Compra pelo site ou pelo app")
+   System(loja, "Loja API", "Pedidos e frete")
+   System_Ext(transnorte, "TransNorte", "Cotação de frete e rastreio")
+-  System_Ext(entregaja, "EntregaJá", "Cotação de frete (reserva)")
+   Rel(cliente, loja, "Faz pedidos", "HTTPS")
+   Rel(loja, transnorte, "Cota o frete", "HTTPS")
+-  Rel(loja, entregaja, "Cota o frete se a TransNorte falhar", "HTTPS")
+ ```
+ 
+ ## Componentes
+@@ -22,7 +19,6 @@ C4Context
+ | --- | --- | --- |
+ | Rotas | `src/app.js` | Traduz método e caminho para as operações de pedidos |
+ | Pedidos | `src/pedidos.js` | Valida, soma os itens, cota o frete e guarda o pedido |
+-| Frete | `src/frete/index.js` | Tenta as transportadoras em ordem: TransNorte, depois EntregaJá |
++| Frete | `src/frete/index.js` | Cota o frete com a TransNorte |
+ | Cliente TransNorte | `src/frete/transnorte.js` | `POST /cotacoes`, com `X-Api-Key` |
+-| Cliente EntregaJá | `src/frete/entregaja.js` | `GET /v1/frete`, com token Bearer |
+ | Catálogo | `src/produtos.js` | Produtos, preços e pesos |
+diff --git a/docs/frete.md b/docs/frete.md
+index 4353f85..28c944b 100644
+--- a/docs/frete.md
++++ b/docs/frete.md
+@@ -4,12 +4,10 @@ O frete é cotado na criação do pedido, pelo peso somado dos itens e pelo CEP
+ 
+ 1. A Loja pede a cotação à **TransNorte** (`POST /cotacoes`, peso em kg). O valor vem em reais e
+    é convertido para centavos.
+-2. Se a TransNorte falhar (erro HTTP ou rede), a Loja pede à **EntregaJá** (`GET /v1/frete`, peso
+-   em gramas). O valor já vem em centavos.
+-3. Se as duas falharem, o pedido não é criado e a API devolve `503 FRETE_INDISPONIVEL`, com a
+-   falha de cada transportadora na mensagem.
++2. Se a TransNorte falhar (erro HTTP ou rede), o pedido não é criado e a API devolve
++   `503 FRETE_INDISPONIVEL`, com a falha da TransNorte na mensagem. Não há transportadora reserva.
+ 
+-O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
++O campo `transportadora` do pedido diz quem cotou: sempre `transnorte`.
+ 
+ ## Configuração
+ 
+@@ -17,5 +15,3 @@ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
+ | --- | --- |
+ | `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v2`) |
+ | `TRANSNORTE_API_KEY` | Chave da TransNorte, enviada em `X-Api-Key` |
+-| `ENTREGAJA_URL` | Base da API da EntregaJá (padrão `https://frete.entregaja.example`) |
+-| `ENTREGAJA_TOKEN` | Token da EntregaJá, enviado como `Authorization: Bearer` |
+diff --git a/docs/guia-de-integracao.md b/docs/guia-de-integracao.md
+index 7b30140..3be7f9d 100644
+--- a/docs/guia-de-integracao.md
++++ b/docs/guia-de-integracao.md
+@@ -32,7 +32,7 @@ Content-Type: application/json
+ ```
+ 
+ Erros: `400 ITENS_OBRIGATORIOS` ou `400 CEP_INVALIDO`, `422 PRODUTO_INEXISTENTE` e
+-`503 FRETE_INDISPONIVEL` quando nenhuma transportadora cota.
++`503 FRETE_INDISPONIVEL` quando a TransNorte não cota.
+ 
+ ## Acompanhar e cancelar
+ 
+diff --git a/openapi/entregaja.yaml b/openapi/entregaja.yaml
+deleted file mode 100644
+index dd8d331..0000000
+--- a/openapi/entregaja.yaml
++++ /dev/null
+@@ -1,44 +0,0 @@
+-openapi: 3.1.0
+-info:
+-  title: EntregaJá
+-  version: '1.0'
+-  description: Transportadora reserva da Loja, usada quando a TransNorte não responde.
+-servers:
+-  - url: https://frete.entregaja.example
+-paths:
+-  /v1/frete:
+-    get:
+-      operationId: cotarFrete
+-      summary: Cota o frete para um CEP
+-      security:
+-        - bearer: []
+-      parameters:
+-        - name: cep
+-          in: query
+-          required: true
+-          schema: { type: string }
+-        - name: peso
+-          in: query
+-          required: true
+-          description: Peso em gramas
+-          schema: { type: integer }
+-      responses:
+-        '200':
+-          description: Cotação
+-          content:
+-            application/json:
+-              schema:
+-                type: object
+-                required: [precoCentavos, prazo]
+-                properties:
+-                  precoCentavos: { type: integer }
+-                  prazo: { type: integer, description: Prazo em dias corridos }
+-              example:
+-                precoCentavos: 1800
+-                prazo: 5
+-components:
+-  securitySchemes:
+-    bearer:
+-      type: http
+-      scheme: bearer
+-      description: Token em ENTREGAJA_TOKEN
+diff --git a/openapi/loja.yaml b/openapi/loja.yaml
+index f3eb775..d63397a 100644
+--- a/openapi/loja.yaml
++++ b/openapi/loja.yaml
+@@ -2,7 +2,7 @@ openapi: 3.1.0
+ info:
+   title: Loja API
+   version: 1.3.0
+-  description: API de pedidos da Loja. Calcula o frete com as transportadoras parceiras.
++  description: API de pedidos da Loja. Calcula o frete com a TransNorte.
+ servers:
+   - url: https://api.loja.example
+     description: Produção
+@@ -56,8 +56,8 @@ paths:
+       operationId: criarPedido
+       summary: Cria um pedido e cota o frete
+       description: >-
+-        Soma os itens, cota o frete com a TransNorte e, se ela não responder, com a EntregaJá.
+-        Sem nenhuma cotação, devolve 503.
++        Soma os itens, cota o frete com a TransNorte.
++        Se ela não responder, devolve 503 (FRETE_INDISPONIVEL).
+       requestBody:
+         required: true
+         content:
+@@ -207,7 +207,7 @@ components:
+         totalCentavos: { type: integer }
+         transportadora:
+           type: string
+-          enum: [transnorte, entregaja]
++          enum: [transnorte]
+         criadoEm: { type: string, format: date-time }
+         motivoCancelamento: { type: [string, 'null'] }
+     Erro:
+diff --git a/src/frete/entregaja.js b/src/frete/entregaja.js
+deleted file mode 100644
+index a1aba7d..0000000
+--- a/src/frete/entregaja.js
++++ /dev/null
+@@ -1,15 +0,0 @@
+-// Cliente da EntregaJá, usada quando a TransNorte não responde. Documentação em openapi/entregaja.yaml.
+-const BASE = process.env.ENTREGAJA_URL ?? 'https://frete.entregaja.example'
+-
+-export function criarEntregaJa({ fetch = globalThis.fetch, token = process.env.ENTREGAJA_TOKEN } = {}) {
+-  return {
+-    nome: 'entregaja',
+-    async cotar({ cepDestino, pesoGramas }) {
+-      const url = `${BASE}/v1/frete?cep=${encodeURIComponent(cepDestino)}&peso=${pesoGramas}`
+-      const res = await fetch(url, { headers: { authorization: `Bearer ${token ?? ''}` } })
+-      if (!res.ok) throw new Error(`EntregaJá respondeu ${res.status}`)
+-      const data = await res.json()
+-      return { valorCentavos: data.precoCentavos, prazoDias: data.prazo, transportadora: 'entregaja' }
+-    }
+-  }
+-}
+diff --git a/src/frete/index.js b/src/frete/index.js
+index c6c9806..9b64d1e 100644
+--- a/src/frete/index.js
++++ b/src/frete/index.js
+@@ -1,20 +1,8 @@
+ import { criarTransNorte } from './transnorte.js'
+-import { criarEntregaJa } from './entregaja.js'
+ 
+-// Cota com a TransNorte e, se ela falhar, com a EntregaJá.
+-export function criarFrete({ provedores } = {}) {
+-  const lista = provedores ?? [criarTransNorte(), criarEntregaJa()]
++// Cota o frete com a TransNorte. Se ela falhar, o erro sobe e o pedido é recusado.
++export function criarFrete({ provedor = criarTransNorte() } = {}) {
+   return {
+-    async cotar(pedido) {
+-      const falhas = []
+-      for (const p of lista) {
+-        try {
+-          return await p.cotar(pedido)
+-        } catch (e) {
+-          falhas.push(`${p.nome}: ${e.message}`)
+-        }
+-      }
+-      throw new Error(`Nenhuma transportadora cotou o frete (${falhas.join('; ')})`)
+-    }
++    cotar: (pedido) => provedor.cotar(pedido)
+   }
+ }
+diff --git a/test/frete.test.js b/test/frete.test.js
+index d1cae3d..7429b19 100644
+--- a/test/frete.test.js
++++ b/test/frete.test.js
+@@ -2,7 +2,6 @@ import { test } from 'node:test'
+ import assert from 'node:assert/strict'
+ import { criarFrete } from '../src/frete/index.js'
+ import { criarTransNorte } from '../src/frete/transnorte.js'
+-import { criarEntregaJa } from '../src/frete/entregaja.js'
+ import { fetchFalso } from './apoio.js'
+ 
+ test('TransNorte cota em reais e converte para centavos', async () => {
+@@ -14,21 +13,13 @@ test('TransNorte cota em reais e converte para centavos', async () => {
+   assert.equal(fetch.chamadas[0].init.headers['x-api-key'], 'k')
+ })
+ 
+-test('EntregaJá cota por query string', async () => {
+-  const fetch = fetchFalso({ precoCentavos: 1800, prazo: 5 })
+-  const r = await criarEntregaJa({ fetch, token: 't' }).cotar({ cepDestino: '01310100', pesoGramas: 700 })
+-  assert.deepEqual(r, { valorCentavos: 1800, prazoDias: 5, transportadora: 'entregaja' })
+-  assert.match(fetch.chamadas[0].url, /\/v1\/frete\?cep=01310100&peso=700$/)
++test('frete cota com a TransNorte', async () => {
++  const ok = { nome: 'transnorte', cotar: async () => ({ valorCentavos: 1000, prazoDias: 6, transportadora: 'transnorte' }) }
++  const r = await criarFrete({ provedor: ok }).cotar({ cepDestino: '01310100', pesoGramas: 100 })
++  assert.equal(r.transportadora, 'transnorte')
+ })
+ 
+-test('frete usa a EntregaJá quando a TransNorte falha', async () => {
++test('frete propaga a falha da TransNorte, sem reserva', async () => {
+   const falha = { nome: 'transnorte', cotar: async () => { throw new Error('timeout') } }
+-  const ok = { nome: 'entregaja', cotar: async () => ({ valorCentavos: 1000, prazoDias: 6, transportadora: 'entregaja' }) }
+-  const r = await criarFrete({ provedores: [falha, ok] }).cotar({ cepDestino: '01310100', pesoGramas: 100 })
+-  assert.equal(r.transportadora, 'entregaja')
+-})
+-
+-test('frete falha com a lista de erros quando todas falham', async () => {
+-  const falha = (nome) => ({ nome, cotar: async () => { throw new Error('fora') } })
+-  await assert.rejects(criarFrete({ provedores: [falha('a'), falha('b')] }).cotar({}), /a: fora; b: fora/)
++  await assert.rejects(criarFrete({ provedor: falha }).cotar({}), /timeout/)
+ })
+diff --git a/test/pedidos.test.js b/test/pedidos.test.js
+index e4c732c..418dd55 100644
+--- a/test/pedidos.test.js
++++ b/test/pedidos.test.js
+@@ -51,7 +51,7 @@ test('GET /pedidos/{id} devolve 404 para pedido que não existe', async () => {
+   assert.equal(r.body.erro.codigo, 'PEDIDO_NAO_ENCONTRADO')
+ })
+ 
+-test('POST /pedidos devolve 503 quando nenhuma transportadora cota', async () => {
++test('POST /pedidos devolve 503 quando a TransNorte não cota', async () => {
+   const frete = { cotar: async () => { throw new Error('fora do ar') } }
+   const r = await novoApp(frete).handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cep: '01310100' })
+   assert.equal(r.status, 503)

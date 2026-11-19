@@ -1,0 +1,68 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.cotarFrete",
+  "name": "Cota o frete para um CEP",
+  "extends": "transnorte",
+  "order": 1,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "POST",
+        "url": "/cotacoes",
+        "body": {
+          "cepDestino": "01310100",
+          "pesoKg": 0.7
+        },
+        "bodySchema": {
+          "type": "object",
+          "required": [
+            "cepDestino",
+            "pesoKg"
+          ],
+          "properties": {
+            "cepDestino": {
+              "type": "string",
+              "pattern": "^\\d{8}$"
+            },
+            "pesoKg": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Cotação",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "valor": 19.9,
+        "prazoDiasUteis": 3
+      },
+      "schema": {
+        "type": "object",
+        "required": [
+          "valor",
+          "prazoDiasUteis"
+        ],
+        "properties": {
+          "valor": {
+            "type": "number",
+            "description": "Valor em reais"
+          },
+          "prazoDiasUteis": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "entregaja.cotarFrete",
+  "name": "Cota o frete para um CEP",
+  "extends": "entregaja",
+  "order": 1,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/v1/frete",
+        "query": {
+          "cep": "",
+          "peso": ""
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Cotação",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "precoCentavos": 1800,
+        "prazo": 5
+      },
+      "schema": {
+        "type": "object",
+        "required": [
+          "precoCentavos",
+          "prazo"
+        ],
+        "properties": {
+          "precoCentavos": {
+            "type": "integer"
+          },
+          "prazo": {
+            "type": "integer",
+            "description": "Prazo em dias corridos"
+          }
+        }
+      }
+    }
+  ]
+}

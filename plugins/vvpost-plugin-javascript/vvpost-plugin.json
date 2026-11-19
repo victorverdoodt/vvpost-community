@@ -1,0 +1,91 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/plugin.json",
+  "id": "vvpost-plugin-javascript",
+  "name": "JavaScript",
+  "version": "1.1.0",
+  "description": "Nó de script JavaScript no Flow Studio. O script lê a saída dos nós anteriores em nodes, devolve o resultado com return (ou atribuindo a output) e pode fazer requisições pelo VVPost com await http.send(...).",
+  "author": "VVPost",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/plugins.md",
+  "main": "index.js",
+  "apiVersion": 1,
+  "contributes": {
+    "nodes": [
+      {
+        "type": "javascript.script",
+        "title": "JavaScript",
+        "description": "Transforma e combina a saída dos nós anteriores com JavaScript.",
+        "fields": [
+          {
+            "key": "code",
+            "label": "Script JavaScript",
+            "type": "code",
+            "language": "javascript",
+            "templates": false,
+            "required": true,
+            "description": "nodes tem a saída dos nós anteriores; devolva o resultado com return. console.log vai para os logs do nó e await http.send({ method, url }) faz uma requisição pelo VVPost.",
+            "default": "// nodes tem a saída dos nós anteriores\nreturn {}\n"
+          }
+        ]
+      },
+      {
+        "type": "javascript.request-script",
+        "title": "Script da requisição",
+        "description": "Script pre-request ou post-response de uma requisição: lê e altera vv.request, lê vv.response, define variáveis e declara testes.",
+        "fields": [
+          {
+            "key": "phase",
+            "label": "Fase",
+            "type": "select",
+            "required": true,
+            "default": "pre",
+            "options": [
+              {
+                "value": "pre",
+                "label": "Antes do envio (pre)"
+              },
+              {
+                "value": "post",
+                "label": "Depois da resposta (post)"
+              }
+            ]
+          },
+          {
+            "key": "code",
+            "label": "Script",
+            "type": "code",
+            "language": "javascript",
+            "templates": false,
+            "required": true,
+            "description": "vv.request (pre: altere method, url, headers, query e body), vv.response (post), vv.variables.get/set, vv.test(nome, fn) e vv.expect(valor).",
+            "default": "// vv.request, vv.response, vv.variables, vv.test e vv.expect\n"
+          },
+          {
+            "key": "request",
+            "label": "Requisição",
+            "type": "json",
+            "description": "A requisição que entra no script: { method, url, headers, query, body }, ou {{ $nodes.<script anterior>.data.request }}."
+          },
+          {
+            "key": "response",
+            "label": "Resposta",
+            "type": "json",
+            "description": "Só no post: {{ $nodes.<requisição> }}."
+          },
+          {
+            "key": "environment",
+            "label": "Variáveis do ambiente",
+            "type": "json",
+            "templates": false,
+            "description": "Valores que vv.variables.get lê; segredos chegam como {{NOME}}, que o host resolve no envio."
+          },
+          {
+            "key": "variables",
+            "label": "Variáveis dos scripts anteriores",
+            "type": "json",
+            "description": "{{ $nodes.<script anterior>.data.variables }}: o que os scripts anteriores definiram."
+          }
+        ]
+      }
+    ]
+  }
+}

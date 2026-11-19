@@ -1,0 +1,73 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "status",
+    "itens",
+    "cep",
+    "subtotalCentavos",
+    "freteCentavos",
+    "totalCentavos",
+    "transportadora",
+    "criadoEm"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "status": {
+      "$ref": "schema:StatusPedido"
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "produtoId": {
+            "type": "string"
+          },
+          "quantidade": {
+            "type": "integer"
+          },
+          "precoCentavos": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "cep": {
+      "type": "string",
+      "description": "CEP de entrega só com dígitos"
+    },
+    "subtotalCentavos": {
+      "type": "integer"
+    },
+    "freteCentavos": {
+      "type": "integer"
+    },
+    "totalCentavos": {
+      "type": "integer"
+    },
+    "transportadora": {
+      "type": "string",
+      "enum": [
+        "transnorte",
+        "entregaja"
+      ]
+    },
+    "criadoEm": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "motivoCancelamento": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/loja.yaml",
+    "hash": "987b886b93b1861a"
+  }
+}

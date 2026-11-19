@@ -1,0 +1,8 @@
+# Contexto de build quando outra imagem usa este repositório (--build-context vvpost=<pasta do core>):
+# a imagem roda npm ci e npm run build sozinha. O node_modules local (no Windows, com junctions
+# para packages/*) e o out/ do host não entram: além de pesados, o Docker recusa as junctions.
+node_modules
+**/node_modules
+out
+.git
+bench-results.json

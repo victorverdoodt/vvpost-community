@@ -1,0 +1,64 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.agendarColeta",
+  "name": "Agenda a coleta de volumes",
+  "extends": "transnorte",
+  "order": 3,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "POST",
+        "url": "/coletas",
+        "body": {
+          "cepOrigem": "04538133",
+          "volumes": 3,
+          "data": "2026-03-03"
+        },
+        "bodySchema": {
+          "type": "object",
+          "required": [
+            "cepOrigem",
+            "volumes",
+            "data"
+          ],
+          "properties": {
+            "cepOrigem": {
+              "type": "string",
+              "pattern": "^\\d{8}$"
+            },
+            "volumes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "data": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-201",
+      "name": "201 Coleta agendada",
+      "status": 201,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "id": "string",
+        "situacao": "agendada",
+        "data": "2024-01-01",
+        "volumes": 0
+      },
+      "schema": {
+        "$ref": "schema:Coleta"
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Serviço de exemplo para o importador de WSDL -->
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:tns="http://exemplo.dev/calculadora"
+    targetNamespace="http://exemplo.dev/calculadora" name="Calculadora">
+  <wsdl:documentation>Calculadora &amp; conversões.</wsdl:documentation>
+  <wsdl:types>
+    <xs:schema targetNamespace="http://exemplo.dev/calculadora" elementFormDefault="qualified">
+      <xs:element name="Somar">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="a" type="xs:int"/>
+            <xs:element name="b" type="xs:int"/>
+            <xs:element name="nota" type="xs:string" minOccurs="0"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="SomarResponse">
+        <xs:complexType><xs:sequence><xs:element name="resultado" type="xs:int"/></xs:sequence></xs:complexType>
+      </xs:element>
+      <xs:complexType name="Endereco">
+        <xs:sequence>
+          <xs:element name="rua" type="xs:string"/>
+          <xs:element name="uf" type="tns:Uf"/>
+        </xs:sequence>
+        <xs:attribute name="principal" type="xs:boolean"/>
+      </xs:complexType>
+      <xs:simpleType name="Uf">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="SP"/>
+          <xs:enumeration value="RJ"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:complexType name="Pessoa">
+        <xs:sequence>
+          <xs:element name="nome" type="xs:string"/>
+          <xs:element name="nascimento" type="xs:date"/>
+          <xs:element name="endereco" type="tns:Endereco" maxOccurs="unbounded"/>
+          <xs:element name="indicado" type="tns:Pessoa" minOccurs="0"/>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:element name="Cadastrar">
+        <xs:complexType><xs:sequence><xs:element name="pessoa" type="tns:Pessoa"/></xs:sequence></xs:complexType>
+      </xs:element>
+      <xs:element name="CadastrarResponse" type="xs:string"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="SomarIn"><wsdl:part name="parameters" element="tns:Somar"/></wsdl:message>
+  <wsdl:message name="SomarOut"><wsdl:part name="parameters" element="tns:SomarResponse"/></wsdl:message>
+  <wsdl:message name="CadastrarIn"><wsdl:part name="parameters" element="tns:Cadastrar"/></wsdl:message>
+  <wsdl:message name="CadastrarOut"><wsdl:part name="parameters" element="tns:CadastrarResponse"/></wsdl:message>
+  <wsdl:message name="DividirIn">
+    <wsdl:part name="dividendo" type="xs:double"/>
+    <wsdl:part name="divisor" type="xs:double"/>
+  </wsdl:message>
+  <wsdl:message name="DividirOut"><wsdl:part name="quociente" type="xs:double"/></wsdl:message>
+  <wsdl:portType name="CalculadoraPort">
+    <wsdl:operation name="Somar">
+      <wsdl:documentation>Soma dois inteiros.</wsdl:documentation>
+      <wsdl:input message="tns:SomarIn"/><wsdl:output message="tns:SomarOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="Cadastrar">
+      <wsdl:input message="tns:CadastrarIn"/><wsdl:output message="tns:CadastrarOut"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="LegadoPort">
+    <wsdl:operation name="Dividir">
+      <wsdl:input message="tns:DividirIn"/><wsdl:output message="tns:DividirOut"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="CalculadoraSoap" type="tns:CalculadoraPort">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <wsdl:operation name="Somar">
+      <soap:operation soapAction="http://exemplo.dev/calculadora/Somar"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input><wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Cadastrar">
+      <soap:operation soapAction="http://exemplo.dev/calculadora/Cadastrar"/>
+      <wsdl:input><soap:body use="literal"/></wsdl:input><wsdl:output><soap:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="CalculadoraSoap12" type="tns:CalculadoraPort">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <wsdl:operation name="Somar">
+      <soap12:operation soapAction="http://exemplo.dev/calculadora/Somar"/>
+      <wsdl:input><soap12:body use="literal"/></wsdl:input><wsdl:output><soap12:body use="literal"/></wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="LegadoRpc" type="tns:LegadoPort">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="rpc"/>
+    <wsdl:operation name="Dividir">
+      <soap:operation soapAction="urn:Dividir"/>
+      <wsdl:input><soap:body use="encoded" namespace="urn:legado"/></wsdl:input>
+      <wsdl:output><soap:body use="encoded" namespace="urn:legado"/></wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CalculadoraService">
+    <wsdl:port name="CalculadoraSoap" binding="tns:CalculadoraSoap"><soap:address location="https://soap.exemplo.dev/calculadora.asmx"/></wsdl:port>
+    <wsdl:port name="CalculadoraSoap12" binding="tns:CalculadoraSoap12"><soap12:address location="https://soap.exemplo.dev/calculadora.asmx"/></wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="LegadoService">
+    <wsdl:port name="LegadoRpc" binding="tns:LegadoRpc"><soap:address location="http://legado.exemplo.dev:8080/rpc"/></wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

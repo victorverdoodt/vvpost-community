@@ -1,0 +1,156 @@
+diff --git a/docs/arquitetura.md b/docs/arquitetura.md
+index e28c6d1..92b7c53 100644
+--- a/docs/arquitetura.md
++++ b/docs/arquitetura.md
+@@ -23,6 +23,6 @@ C4Context
+ | Rotas | `src/app.js` | Traduz método e caminho para as operações de pedidos |
+ | Pedidos | `src/pedidos.js` | Valida, soma os itens, cota o frete e guarda o pedido |
+ | Frete | `src/frete/index.js` | Tenta as transportadoras em ordem: TransNorte, depois EntregaJá |
+-| Cliente TransNorte | `src/frete/transnorte.js` | `POST /cotacoes`, com `X-Api-Key` |
++| Cliente TransNorte | `src/frete/transnorte.js` | `POST /cotacoes`, com `X-Api-Key` e `X-Cliente-Id` |
+ | Cliente EntregaJá | `src/frete/entregaja.js` | `GET /v1/frete`, com token Bearer |
+ | Catálogo | `src/produtos.js` | Produtos, preços e pesos |
+diff --git a/docs/frete.md b/docs/frete.md
+index 4353f85..2713423 100644
+--- a/docs/frete.md
++++ b/docs/frete.md
+@@ -15,7 +15,8 @@ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
+ 
+ | Variável | Uso |
+ | --- | --- |
+-| `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v2`) |
++| `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v3`) |
+ | `TRANSNORTE_API_KEY` | Chave da TransNorte, enviada em `X-Api-Key` |
++| `TRANSNORTE_CLIENTE_ID` | Id do cliente da Loja na TransNorte, enviado em `X-Cliente-Id` (obrigatório na v3) |
+ | `ENTREGAJA_URL` | Base da API da EntregaJá (padrão `https://frete.entregaja.example`) |
+ | `ENTREGAJA_TOKEN` | Token da EntregaJá, enviado como `Authorization: Bearer` |
+diff --git a/openapi/transnorte.yaml b/openapi/transnorte.yaml
+index db72be2..b9e3f8d 100644
+--- a/openapi/transnorte.yaml
++++ b/openapi/transnorte.yaml
+@@ -1,10 +1,10 @@
+ openapi: 3.1.0
+ info:
+   title: TransNorte
+-  version: '2.0'
++  version: '3.0'
+   description: Transportadora principal da Loja. A Loja usa a cotação de frete; as outras rotas ficam para o painel de logística.
+ servers:
+-  - url: https://api.transnorte.example/v2
++  - url: https://api.transnorte.example/v3
+ paths:
+   /cotacoes:
+     post:
+@@ -12,6 +12,7 @@ paths:
+       summary: Cota o frete para um CEP
+       security:
+         - apiKey: []
++          clienteId: []
+       requestBody:
+         required: true
+         content:
+@@ -45,6 +46,7 @@ paths:
+       summary: Eventos de rastreio de um envio
+       security:
+         - apiKey: []
++          clienteId: []
+       parameters:
+         - name: codigo
+           in: path
+@@ -83,6 +85,7 @@ paths:
+       summary: Agenda a coleta de volumes
+       security:
+         - apiKey: []
++          clienteId: []
+       requestBody:
+         required: true
+         content:
+@@ -111,6 +114,7 @@ paths:
+       summary: Situação de uma coleta
+       security:
+         - apiKey: []
++          clienteId: []
+       parameters:
+         - $ref: '#/components/parameters/IdColeta'
+       responses:
+@@ -127,6 +131,7 @@ paths:
+       summary: Cancela uma coleta ainda não feita
+       security:
+         - apiKey: []
++          clienteId: []
+       parameters:
+         - $ref: '#/components/parameters/IdColeta'
+       responses:
+@@ -140,6 +145,7 @@ paths:
+       summary: Gera a etiqueta de um envio
+       security:
+         - apiKey: []
++          clienteId: []
+       requestBody:
+         required: true
+         content:
+@@ -168,6 +174,7 @@ paths:
+       summary: Uma etiqueta, com o PDF
+       security:
+         - apiKey: []
++          clienteId: []
+       parameters:
+         - name: codigo
+           in: path
+@@ -186,6 +193,7 @@ paths:
+       summary: Pontos de retirada perto de um CEP
+       security:
+         - apiKey: []
++          clienteId: []
+       parameters:
+         - name: cep
+           in: query
+@@ -240,3 +248,8 @@ components:
+       in: header
+       name: X-Api-Key
+       description: Chave em TRANSNORTE_API_KEY
++    clienteId:
++      type: apiKey
++      in: header
++      name: X-Cliente-Id
++      description: Id do cliente da Loja, em TRANSNORTE_CLIENTE_ID. Obrigatório em toda chamada (v3)
+diff --git a/src/frete/transnorte.js b/src/frete/transnorte.js
+index 7be3a23..b034831 100644
+--- a/src/frete/transnorte.js
++++ b/src/frete/transnorte.js
+@@ -1,13 +1,13 @@
+ // Cliente da TransNorte (cotação de frete). Documentação da API em openapi/transnorte.yaml.
+-const BASE = process.env.TRANSNORTE_URL ?? 'https://api.transnorte.example/v2'
++const BASE = process.env.TRANSNORTE_URL ?? 'https://api.transnorte.example/v3'
+ 
+-export function criarTransNorte({ fetch = globalThis.fetch, apiKey = process.env.TRANSNORTE_API_KEY } = {}) {
++export function criarTransNorte({ fetch = globalThis.fetch, apiKey = process.env.TRANSNORTE_API_KEY, clienteId = process.env.TRANSNORTE_CLIENTE_ID } = {}) {
+   return {
+     nome: 'transnorte',
+     async cotar({ cepDestino, pesoGramas }) {
+       const res = await fetch(`${BASE}/cotacoes`, {
+         method: 'POST',
+-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey ?? '' },
++        headers: { 'content-type': 'application/json', 'x-api-key': apiKey ?? '', 'x-cliente-id': clienteId ?? '' },
+         body: JSON.stringify({ cepDestino, pesoKg: pesoGramas / 1000 })
+       })
+       if (!res.ok) throw new Error(`TransNorte respondeu ${res.status}`)
+diff --git a/test/frete.test.js b/test/frete.test.js
+index d1cae3d..c675750 100644
+--- a/test/frete.test.js
++++ b/test/frete.test.js
+@@ -7,11 +7,13 @@ import { fetchFalso } from './apoio.js'
+ 
+ test('TransNorte cota em reais e converte para centavos', async () => {
+   const fetch = fetchFalso({ valor: 23.5, prazoDiasUteis: 3 })
+-  const r = await criarTransNorte({ fetch, apiKey: 'k' }).cotar({ cepDestino: '01310100', pesoGramas: 1500 })
++  const r = await criarTransNorte({ fetch, apiKey: 'k', clienteId: 'cli-1' }).cotar({ cepDestino: '01310100', pesoGramas: 1500 })
+   assert.deepEqual(r, { valorCentavos: 2350, prazoDias: 3, transportadora: 'transnorte' })
+   assert.match(fetch.chamadas[0].url, /\/cotacoes$/)
+   assert.equal(JSON.parse(fetch.chamadas[0].init.body).pesoKg, 1.5)
+   assert.equal(fetch.chamadas[0].init.headers['x-api-key'], 'k')
++  assert.equal(fetch.chamadas[0].init.headers['x-cliente-id'], 'cli-1')
++  assert.match(fetch.chamadas[0].url, /\/v3\/cotacoes$/)
+ })
+ 
+ test('EntregaJá cota por query string', async () => {

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "connector.corporate.base",
+  "name": "Corporate Base",
+  "description": "Base corporativa: URL, tenant, rastreio e OAuth2 client credentials.",
+  "version": "1.0.0",
+  "defaults": {
+    "baseUrl": "{{BASE_URL}}",
+    "headers": {
+      "X-Tenant": "acme",
+      "X-Request-Source": "vvpost"
+    }
+  },
+  "nodes": [
+    {
+      "id": "oauth2",
+      "name": "OAuth2",
+      "type": "oauth2",
+      "oauth2": {
+        "type": "oauth2",
+        "grantType": "client_credentials",
+        "tokenUrl": "/oauth/token",
+        "clientId": "{{CLIENT_ID}}",
+        "clientSecret": "{{CLIENT_SECRET}}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+import { readdir, readFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import type { LoadedWorkspace } from '@vvpost/core/connectors/workspace'
+import type { FlowCatalog } from '@vvpost/core/types'
+import {
+  applyDriftFixes,
+  describeStructureChange,
+  linkDiagrams,
+  structureSignature,
+  type ArchitectureCatalog,
+  type DriftCode,
+  type DriftItem,
+  type StructureSignature
+} from '@vvpost/core/docs/architecture'
+import type { LintWorkspaceDocument } from '@vvpost/core/lint'
+import { plainFlows } from '@vvpost/core/flows/workspace'
+import { git } from '../workspace/git'
+
+/**
+ * A documentação de arquitetura além do que o core vê no texto (docs/documentation.md):
+ * a correção automática dos diagramas (fix_diagrams, vvpost lint --fix, botão do painel Lint) e
+ * a página que ficou velha porque os conectores que ela mostra mudaram depois do último commit
+ * dela (`doc-stale-since-change`, pelo histórico do Git).
+ */
+
+export interface DiagramFixPlan {
+  files: { file: string; fixes: { code: DriftCode; message: string; line?: number }[]; removed: string[]; added: string[] }[]
+  /** Quantas correções o plano aplica. */
+  total: number
+}
+
+/** O plano das correções que o VVPost sabe fazer, por arquivo; `apply` grava. */
+export async function fixDiagrams(
+  dir: string,
+  drift: readonly DriftItem[],
+  options: { apply: boolean; ws: LoadedWorkspace; codes?: readonly string[]; file?: string }
+): Promise<DiagramFixPlan> {
+  const fixable = drift.filter(
+    (d) => d.fix && /^docs\/.+\.(md|mmd)$/i.test(d.file) && (!options.codes?.length || options.codes.includes(d.code)) && (!options.file || d.file === options.file)
+  )
+  const byFile = new Map<string, DriftItem[]>()
+  for (const d of fixable) byFile.set(d.file, [...(byFile.get(d.file) ?? []), d])
+  const plan: DiagramFixPlan = { files: [], total: fixable.length }
+  const writes: { file: string; text: string }[] = []
+  for (const [file, items] of byFile) {
+    const before = await readFile(join(dir, file), 'utf8')
+    const after = applyDriftFixes(before, items.map((i) => i.fix!))
+    const lines = before.replace(/\r\n?/g, '\n').split('\n')
+    const removed = [...new Set(items.flatMap((i) => i.fix!.remove ?? []))].sort((a, b) => a - b).map((n) => lines[n - 1] ?? '')
+    const added = [...new Set(items.flatMap((i) => i.fix!.insert?.lines ?? []))]
+    plan.files.push({ file, fixes: items.map((i) => ({ code: i.code, message: i.message, ...(i.line !== undefined && { line: i.line }) })), removed, added })
+    writes.push({ file, text: after })
+  }
+  if (options.apply) {
+    const { writeDocsPage } = await import('@vvpost/core/docs')
+    for (const w of writes) await writeDocsPage(options.ws, w.file, w.text)
+  }
+  return plan
+}
+
+const MAX_PAGES = 50
+const MAX_REFS = 30
+/** Conteúdo de um arquivo num commit: não muda, então fica guardado entre os lints. */
+const shown = new Map<string, string | null>()
+
+async function showAt(dir: string, commit: string, file: string): Promise<string | null> {
+  const key = `${dir}\0${commit}\0${file}`
+  if (shown.has(key)) return shown.get(key)!
+  const text = await git(dir, ['show', `${commit}:./${file}`]).catch(() => null)
+  if (shown.size > 2000) shown.clear()
+  shown.set(key, text)
+  return text
+}
+
+const parse = (text: string | null): unknown => {
+  if (text === null) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
+  }
+}
+
+const FLOW_FILE = /\.flow\.vvpost\.json$/i
+
+/**
+ * Páginas de arquitetura (com diagrama ligado ao catálogo, ou ADR) cujos conectores e fluxos
+ * mudaram de estrutura depois do último commit da página: endpoint novo ou removido, origem,
+ * auth ou herança, ou o que o fluxo chama. Página com mudança não commitada conta como revisada.
+ * Fora de um repositório Git, ou sem o Git, não diz nada.
+ */
+export async function historyDrift(dir: string, ws: LoadedWorkspace, flows: FlowCatalog, data: LintWorkspaceDocument): Promise<DriftItem[]> {
+  try {
+    await git(dir, ['rev-parse', '--show-toplevel'])
+  } catch {
+    return []
+  }
+  const catalog: ArchitectureCatalog = { connectors: [...ws.connectors.values()], ownConnectors: data.connectors, flows: plainFlows(flows, ws.flowSources) }
+  const { links } = linkDiagrams(data.diagrams, catalog)
+  // Por página: o que ela mostra e a linha onde mostra.
+  const pages = new Map<string, Map<string, number | undefined>>()
+  const cite = (file: string, key: string, line: number | undefined) => {
+    const refs = pages.get(file) ?? pages.set(file, new Map()).get(file)!
+    if (!refs.has(key)) refs.set(key, line)
+  }
+  for (const l of links) cite(l.diagram.file, `${l.ref.kind}:${l.ref.id}`, l.diagram.line)
+  for (const p of data.docs) {
+    if (!/^#{1,6}\s+.*\b(ADR|decis(ão|ões|ao|oes)\s+de\s+arquitetura)\b/im.test(p.text)) continue
+    for (const c of p.references.connectors) cite(p.file, `connector:${c}`, undefined)
+    // O id no texto também conta: o conector pode ter perdido justo o endpoint citado.
+    for (const c of catalog.connectors) if (p.text.includes(c.id)) cite(p.file, `connector:${c.id}`, undefined)
+  }
+  const items: DriftItem[] = []
+  for (const [file, refs] of [...pages].slice(0, MAX_PAGES)) {
+    if ((await git(dir, ['status', '--porcelain', '--', file]).catch(() => 'x')).trim()) continue
+    const last = (await git(dir, ['log', '-1', '--format=%H %cs', '--', file]).catch(() => '')).trim()
+    if (!last) continue
+    const [commit, date] = last.split(' ') as [string, string]
+    const marked = new Set<string>()
+    for (const [key, line] of [...refs].slice(0, MAX_REFS)) {
+      const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
+      const changes = kind === 'connector' ? await connectorChanges(dir, ws, id, commit) : await flowChanges(dir, flows, id, commit)
+      if (!changes?.length || marked.has(key)) continue
+      marked.add(key)
+      items.push({
+        code: 'doc-stale-since-change',
+        message: `o ${kind === 'connector' ? 'conector' : 'fluxo'} ${id} mudou depois do último commit desta página (${commit.slice(0, 7)}, ${date}): ${changes.slice(0, 6).join(', ')}${changes.length > 6 ? `, e mais ${changes.length - 6}` : ''}`,
+        hint: 'Revise a página e os diagramas dela. Se ela já estiver em dia, registre a revisão (por exemplo <!-- vvpost:revisado AAAA-MM-DD -->) e faça o commit: o aviso some quando a página muda depois da mudança.',
+        file,
+        ...(line !== undefined && { line }),
+        label: id,
+        ...(kind === 'connector' ? { connectorId: id } : { flowId: id })
+      })
+    }
+  }
+  return items
+}
+
+/** O que mudou na estrutura do conector desde o commit; null: não dá para saber (não existia). */
+async function connectorChanges(dir: string, ws: LoadedWorkspace, id: string, commit: string): Promise<string[] | null> {
+  const file = ws.flowSources?.get(id) ?? ws.connectorFiles.get(id)
+  if (!file || file.startsWith('../') || file.startsWith('shared:')) return null
+  const before = structureSignature(parse(await showAt(dir, commit, file)))
+  if (!before) return null
+  const current = structureSignature(parse(await readFile(join(dir, file), 'utf8').catch(() => null)))
+  if (!current) return null
+  if (FLOW_FILE.test(file)) {
+    // Conector em fluxos: os endpoints são os outros arquivos da pasta.
+    const folder = dirname(file)
+    const base = file.slice(folder.length + 1)
+    const names = (list: string[]) => list.map((f) => f.slice(f.lastIndexOf('/') + 1)).filter((f) => FLOW_FILE.test(f) && f !== base).map((f) => f.replace(FLOW_FILE, '')).sort()
+    const then = names((await git(dir, ['ls-tree', '--name-only', commit, `./${folder}/`]).catch(() => '')).split('\n').filter(Boolean))
+    const now = names(await readdir(join(dir, folder)).catch(() => []))
+    before.endpoints = then.map((e) => `${e}`)
+    current.endpoints = now.map((e) => `${e}`)
+  }
+  return describeStructureChange(before, current)
+}
+
+async function flowChanges(dir: string, flows: FlowCatalog, id: string, commit: string): Promise<string[] | null> {
+  const entry = flows.flows.find((f) => f.flow.id === id)
+  if (!entry) return null
+  const before: StructureSignature | null = structureSignature(parse(await showAt(dir, commit, entry.file)))
+  const current = structureSignature(entry.flow)
+  if (!before || !current) return null
+  return describeStructureChange(before, current)
+}

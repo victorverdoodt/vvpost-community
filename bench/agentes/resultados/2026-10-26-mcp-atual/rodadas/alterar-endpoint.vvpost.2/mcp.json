@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "vvpost": {
+      "command": "/opt/node22/bin/node",
+      "args": [
+        "/home/claude/vvpost-community/out/main/mcp.js",
+        "--workspace",
+        "/tmp/vvpost-bench-pcTThs/loja-api/api",
+        "--repo",
+        "/tmp/vvpost-bench-pcTThs/loja-api",
+        "--stats",
+        "/home/claude/vvpost-community/bench/agentes/resultados/2026-10-26-mcp-atual/rodadas/alterar-endpoint.vvpost.2/mcp-stats.jsonl"
+      ]
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/plugin.json",
+  "id": "vvpost-plugin-graphql",
+  "name": "GraphQL",
+  "version": "1.0.0",
+  "description": "Adapter de protocolo GraphQL (GraphQL over HTTP): query ou mutation com variáveis, pelo dispatcher e pela auth headless do VVPost. Com um conector no nó, a baseUrl, os headers e a auth herdados valem para a chamada.",
+  "author": "VVPost",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/plugins.md",
+  "main": "index.js",
+  "apiVersion": 1,
+  "contributes": {
+    "adapters": [
+      {
+        "protocol": "graphql",
+        "title": "GraphQL",
+        "description": "Envia uma operação GraphQL (POST com JSON). A saída tem data (o corpo: { data, errors }), status e headers.",
+        "fields": [
+          {
+            "key": "url",
+            "label": "URL",
+            "type": "text",
+            "required": true,
+            "default": "/graphql",
+            "placeholder": "/graphql ou {{GRAPHQL_URL}}",
+            "description": "Relativa à baseUrl do conector do nó, ou absoluta. Aceita {{VAR}} do ambiente."
+          },
+          {
+            "key": "query",
+            "label": "Operação",
+            "type": "code",
+            "language": "graphql",
+            "required": true,
+            "default": "query {\n  __typename\n}\n"
+          },
+          {
+            "key": "variables",
+            "label": "Variáveis",
+            "type": "json",
+            "description": "Objeto JSON. Um valor que é só \"{{ $nodes.Nome.data.campo }}\" vira o valor referenciado."
+          },
+          { "key": "operationName", "label": "Nome da operação", "type": "text", "description": "Qual operação rodar, quando o documento tem mais de uma." },
+          {
+            "key": "headers",
+            "label": "Headers",
+            "type": "json",
+            "description": "Objeto { \"Nome\": \"valor\" }, mesclado aos herdados do conector."
+          },
+          {
+            "key": "ignoreErrors",
+            "label": "Seguir quando a resposta tiver errors",
+            "type": "boolean",
+            "default": false,
+            "description": "Padrão: uma resposta com errors falha o nó com as mensagens. Marcado, ela segue para $nodes e uma condição decide."
+          }
+        ]
+      }
+    ]
+  }
+}

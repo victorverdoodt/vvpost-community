@@ -1,0 +1,17 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte",
+  "name": "TransNorte",
+  "description": "Transportadora principal da Loja. A Loja usa a cotação de frete; as outras rotas ficam para o painel de logística.",
+  "version": "2.0.0",
+  "defaults": {
+    "baseUrl": "https://api.transnorte.example/v2",
+    "auth": {
+      "type": "apiKey",
+      "name": "X-Api-Key",
+      "value": "{{TRANSNORTE_API_KEY}}",
+      "in": "header"
+    }
+  },
+  "nodes": []
+}

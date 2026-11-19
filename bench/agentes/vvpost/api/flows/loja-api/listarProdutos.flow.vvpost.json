@@ -1,0 +1,52 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "loja-api.listarProdutos",
+  "name": "Lista os produtos à venda",
+  "extends": "loja-api",
+  "order": 1,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/produtos"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Produtos",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "produtos": [
+          {
+            "id": "string",
+            "nome": "string",
+            "precoCentavos": 0,
+            "pesoGramas": 0
+          }
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "required": [
+          "produtos"
+        ],
+        "properties": {
+          "produtos": {
+            "type": "array",
+            "items": {
+              "$ref": "schema:Produto"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

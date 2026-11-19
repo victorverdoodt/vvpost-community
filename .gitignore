@@ -1,0 +1,13 @@
+node_modules/
+out/
+dist/
+*.log
+*.tsbuildinfo
+.DS_Store
+bench-results.json
+bench-modules.json
+bench-memory-tour.json
+
+# Segredos locais nunca vão para o Git (spec 4.6)
+.secrets.local.json
+.vvpost/secrets.local.json

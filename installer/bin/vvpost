@@ -1,0 +1,12 @@
+#!/bin/sh
+# `vvpost` do instalador (Linux e macOS): o CLI roda no Electron do próprio app em modo
+# Node (ELECTRON_RUN_AS_NODE), sem precisar de Node instalado. Fica em resources/bin.
+set -e
+self=$(readlink -f "$0" 2>/dev/null || echo "$0")
+resources=$(cd "$(dirname "$self")/.." && pwd)
+if [ "$(uname -s)" = Darwin ]; then
+  exe="$resources/../MacOS/VVPost"
+else
+  exe="$resources/../vvpost-desktop"
+fi
+ELECTRON_RUN_AS_NODE=1 exec "$exe" "$resources/app.asar/out/main/cli.js" "$@"

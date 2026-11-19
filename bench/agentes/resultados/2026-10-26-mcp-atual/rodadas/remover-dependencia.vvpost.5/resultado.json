@@ -1,0 +1,143 @@
+{
+  "rodada": "remover-dependencia.vvpost.5",
+  "tarefa": "remover-dependencia",
+  "variante": "vvpost",
+  "n": 5,
+  "inicio": "2026-10-26T13:25:58.874Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 20,
+  "passos": 19,
+  "passosMcp": 3,
+  "errosDeFerramenta": 0,
+  "ferramentasComErro": [],
+  "negadas": [],
+  "porFerramenta": {
+    "Grep": 1,
+    "ToolSearch": 1,
+    "Read": 8,
+    "mcp__vvpost__find_references": 1,
+    "Bash": 2,
+    "Edit": 4,
+    "mcp__vvpost__edit_project": 2
+  },
+  "tokens": {
+    "entrada": 18,
+    "escritaCache": 25961,
+    "leituraCache": 253177,
+    "saida": 5997,
+    "total": 285153
+  },
+  "custoUsd": 0.1891677,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1891677
+  },
+  "duracaoMs": 36446,
+  "terminou": true,
+  "homolog": {
+    "porta": 46805,
+    "chave": "hk-d2f01fbc342b54a6ec916d66",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "A EntregaJá foi removida. O frete agora é cotado só pela TransNorte e, se ela falhar, o pedido continua sendo recusado com 503 `FRETE_INDISPONIVEL`. Os 10 testes passam e nenhuma referência à EntregaJá sobrou no repositório. Não fiz commit.\n\n**Código e testes**\n- Apaguei `src/frete/entregaja.js`. Em `src/frete/index.js`, a lista de provedores ficou só com a TransNorte.\n- Em `test/frete.test.js`, tirei os testes da EntregaJá e acrescentei um de que o frete falha quando a TransNorte falha. O teste de erro com vários provedores continua.\n- No `README.md`, tirei a menção à EntregaJá.\n\n**Documentação (VVPost)**\n- Fiz tudo num só `edit_project`:\n  - Removi o conector `entregaja` e o fluxo `cotarFrete`.\n  - Removi a variável `ENTREGAJA_TOKEN` de homolog e produção.\n  - No schema `Pedido`, `transportadora` agora aceita só `transnorte`.\n  - Atualizei a descrição do fluxo `criarPedido`.\n- Atualizei as páginas `frete.md`, `arquitetura.md` (inclusive o diagrama) e `projeto.md`.\n- A resposta de escrita não trouxe `stalePdf` nem `documentErrors`, então não exportei o PDF.\n\nEm `src/frete/index.js`, quando a TransNorte falha, a mensagem do erro agora é `Nenhuma transportadora cotou o frete (transnorte: …)`. Mantive o texto genérico para não mexer no tratamento do 503.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

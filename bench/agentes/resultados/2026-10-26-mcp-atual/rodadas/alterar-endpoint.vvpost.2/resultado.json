@@ -1,0 +1,144 @@
+{
+  "rodada": "alterar-endpoint.vvpost.2",
+  "tarefa": "alterar-endpoint",
+  "variante": "vvpost",
+  "n": 2,
+  "inicio": "2026-10-26T13:19:29.008Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 19,
+  "passos": 18,
+  "passosMcp": 5,
+  "errosDeFerramenta": 0,
+  "ferramentasComErro": [],
+  "negadas": [],
+  "porFerramenta": {
+    "Grep": 1,
+    "ToolSearch": 1,
+    "Read": 5,
+    "mcp__vvpost__find_references": 1,
+    "Edit": 4,
+    "Bash": 2,
+    "mcp__vvpost__get_source": 2,
+    "mcp__vvpost__edit_project": 2
+  },
+  "tokens": {
+    "entrada": 16,
+    "escritaCache": 25235,
+    "leituraCache": 229113,
+    "saida": 3616,
+    "total": 257980
+  },
+  "custoUsd": 0.1600433,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1600433
+  },
+  "duracaoMs": 24369,
+  "terminou": true,
+  "homolog": {
+    "porta": 34345,
+    "chave": "hk-28a0cbf9baef6148e91c9d11",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, `cep` agora é `cepEntrega`, com a mesma validação e ainda obrigatório. O pedido devolvido também traz `cepEntrega` no lugar de `cep` e ganhou `prazoEntregaDias`. Os 11 testes passam. Atualizei o código, os testes e a documentação no VVPost.\n\n- **Código:** a mudança está em `src/pedidos.js`. O `prazoEntregaDias` vem do `prazoDias` da cotação, sem conversão.\n- **Testes:** atualizei `test/pedidos.test.js` para o novo nome. Ele também confere `prazoEntregaDias` e que `cep` não aparece mais na resposta.\n- **VVPost:** num único `edit_project`, troquei `cep` por `cepEntrega` nos schemas `NovoPedido` e `Pedido` e nos fluxos de `loja-api`. Os fluxos de TransNorte e EntregaJá ficaram como estavam, porque a mudança é só na API da Loja. Adicionei `prazoEntregaDias` ao schema `Pedido` como obrigatório, com exemplo, e atualizei o guia de integração.\n- **PDF:** a resposta de escrita não trouxe `stalePdf`, então não exportei.\n\nOs prazos das duas transportadoras têm unidades diferentes: a TransNorte informa dias úteis e a EntregaJá, dias corridos. O `prazoEntregaDias` repete o valor sem converter, então a unidade varia conforme a transportadora que cotou.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.obterColeta",
+  "name": "Situação de uma coleta",
+  "extends": "transnorte",
+  "order": 4,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/coletas/{id}"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Coleta",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "id": "string",
+        "situacao": "agendada",
+        "data": "2024-01-01",
+        "volumes": 0
+      },
+      "schema": {
+        "$ref": "schema:Coleta"
+      }
+    },
+    {
+      "id": "erro-404",
+      "name": "404 Coleta desconhecida",
+      "status": 404
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "rodada": "alterar-endpoint.baseline.5",
+  "tarefa": "alterar-endpoint",
+  "variante": "baseline",
+  "n": 5,
+  "inicio": "2026-10-26T13:25:40.473Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 5,
+  "passos": 4,
+  "passosMcp": 0,
+  "errosDeFerramenta": 0,
+  "ferramentasComErro": [],
+  "negadas": [],
+  "porFerramenta": {
+    "Bash": 4
+  },
+  "tokens": {
+    "entrada": 10,
+    "escritaCache": 14140,
+    "leituraCache": 95677,
+    "saida": 2120,
+    "total": 111947
+  },
+  "custoUsd": 0.0873477,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.0873477
+  },
+  "duracaoMs": 16958,
+  "terminou": true,
+  "homolog": {
+    "porta": 34955,
+    "chave": "hk-29bc0d409785972e033ea022",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, o campo `cep` agora é `cepEntrega`, com as mesmas regras e ainda obrigatório. O pedido devolvido traz `cepEntrega` no lugar de `cep` e ganhou `prazoEntregaDias`. Os 11 testes passam com `npm test`. Não subi a API de homologação.\n\n- **Código (`src/pedidos.js`):** o `prazoEntregaDias` vem do `prazoDias` da cotação, seja da TransNorte ou da EntregaJá. O código de erro `CEP_INVALIDO` continua o mesmo.\n- **Testes (`test/pedidos.test.js`):** troquei `cep` por `cepEntrega` e adicionei uma conferência do `prazoEntregaDias` no teste de criação do pedido.\n- **OpenAPI (`openapi/loja.yaml`):** renomeei o campo no `NovoPedido` (inclusive no `required`) e no `Pedido`. Incluí `prazoEntregaDias` como obrigatório no `Pedido` e atualizei os exemplos.\n- **Docs:** atualizei `docs/guia-de-integracao.md` e `docs/frete.md`. Nada em `README.md` nem em `docs/arquitetura.md` mencionava o campo.\n\nOs outros `cep` que sobraram no repositório são das APIs das transportadoras e não mudam: o parâmetro `?cep=` da EntregaJá e os campos da TransNorte.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

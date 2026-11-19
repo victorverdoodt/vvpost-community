@@ -1,0 +1,39 @@
+type: collection.insomnia.rest/5.0
+name: Loja v5
+meta:
+  id: wrk_v5
+  description: Exportação v5 do Insomnia.
+collection:
+  - name: Clientes
+    meta:
+      id: fld_clientes
+      sortKey: -1
+    authentication:
+      type: digest
+      username: "{{ _.usuario }}"
+      password: senha-digest
+    children:
+      - url: "{{ _.base_url }}/clientes/:id"
+        name: Ver cliente
+        meta:
+          id: req_ver
+          sortKey: -1
+        method: GET
+        headers:
+          - name: Accept
+            value: application/json
+        scripts:
+          preRequest: insomnia.variables.set('agora', Date.now());
+  - url: "{{ _.base_url }}/saude"
+    name: Saúde
+    meta:
+      id: req_saude
+      sortKey: 1
+    method: GET
+environments:
+  name: Base Environment
+  meta:
+    id: env_v5
+  data:
+    base_url: https://v5.loja.dev
+    usuario: loja

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/connector.json",
+  "id": "connector.identity.base",
+  "name": "Identity Base",
+  "version": "1.0.0",
+  "config": {
+    "baseUrl": "{{BASE_URL}}",
+    "headers": {
+      "X-Correlation-Id": "{{$uuid}}"
+    },
+    "auth": {
+      "type": "oauth2",
+      "grantType": "client_credentials",
+      "tokenUrl": "/oauth/token",
+      "clientId": "{{CLIENT_ID}}",
+      "clientSecret": "{{CLIENT_SECRET}}",
+      "scope": "billing.read billing.write"
+    },
+    "tls": {
+      "cert": "certs/client.crt",
+      "key": "{{CLIENT_KEY_PATH}}",
+      "ca": "certs/corporate-ca.pem"
+    }
+  }
+}

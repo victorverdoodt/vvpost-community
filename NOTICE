@@ -1,0 +1,17 @@
+VVPost Community
+Copyright 2026 Victor Verdoodt
+
+Este produto é licenciado sob a Apache License 2.0 (veja LICENSE).
+
+O app desktop e o CLI embutem no bundle (out/) componentes de terceiros. A maioria usa licenças
+permissivas (MIT, ISC, BSD, Apache 2.0). Os que pedem aviso próprio:
+
+- Inter e JetBrains Mono (@fontsource-variable/*): SIL Open Font License 1.1.
+- DOMPurify: Apache License 2.0 ou Mozilla Public License 2.0, à escolha (usado sob Apache 2.0).
+- elkjs (layout de diagramas, via Mermaid): Eclipse Public License 2.0. O código-fonte está em
+  https://github.com/kieler/elkjs.
+- Monaco Editor, Mermaid, React, Fastify, undici e as demais dependências: MIT ou equivalente.
+
+A lista completa, com a licença de cada pacote, sai de `package-lock.json`
+(`npx license-checker --production=false --summary`). Os textos das licenças acompanham cada
+pacote em node_modules/<pacote>/LICENSE.

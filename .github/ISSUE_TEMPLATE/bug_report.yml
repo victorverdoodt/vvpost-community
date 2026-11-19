@@ -1,0 +1,60 @@
+name: Relatar um bug
+description: Algo não funciona como deveria.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por relatar! Vulnerabilidades não vão aqui: veja o SECURITY.md.
+        Nunca cole credenciais reais; troque por valores de teste.
+  - type: textarea
+    id: what
+    attributes:
+      label: O que aconteceu
+      description: O que você viu e o que esperava ver.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      description: Passo a passo. Um workspace mínimo (sem segredos) ajuda muito.
+      placeholder: |
+        1. Abrir o workspace ...
+        2. No Quick Request, escolher o conector ...
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Onde
+      multiple: true
+      options:
+        - App desktop
+        - CLI (vvpost)
+        - Servidor MCP
+        - Secret Engine
+        - Plugin SDK / plugins
+        - Importador / exportação
+        - Documentação
+  - type: input
+    id: version
+    attributes:
+      label: Versão ou commit
+      placeholder: ex.: 0.1.0 ou a8f3c2d
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operacional
+      placeholder: ex.: Windows 11, macOS 15, Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs ou prints
+      description: Saída do terminal, do CLI ou prints da tela.
+      render: shell

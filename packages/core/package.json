@@ -1,0 +1,37 @@
+{
+  "name": "@vvpost/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motor do VVPost em Node puro: dispatcher HTTP, herança e auth headless, cenários, Context Engine de fluxos, plugins e Secret Sanitizer. Usado pelo app Electron, pelo CLI e pelo servidor MCP.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./brand": "./src/brand/index.ts",
+    "./connectors": "./src/connectors/index.ts",
+    "./docs": "./src/docs/index.ts",
+    "./docs/export": "./src/docs/export/index.ts",
+    "./docs/publish": "./src/docs/publish/index.ts",
+    "./flows": "./src/flows/index.ts",
+    "./lint": "./src/lint/index.ts",
+    "./mock": "./src/mock/index.ts",
+    "./plugins": "./src/plugins/index.ts",
+    "./realtime": "./src/realtime/index.ts",
+    "./scenarios": "./src/scenarios/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=22.19"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vvpost/schemas": "file:../schemas",
+    "marked": "^18.1.1",
+    "undici": "^8.12.3"
+  }
+}

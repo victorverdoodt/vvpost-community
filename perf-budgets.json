@@ -1,0 +1,12 @@
+{
+  "$comment": "Metas de desempenho. Uma métrica com enforce=true faz o benchmark (e o CI) falhar se passar do limite; com enforce=false ela só é reportada. A RAM fica em enforce=false até o esqueleto chegar na meta. secretEngineMB é quanto o main process cresce com o mock de Secret Managers ligado e atendendo requisições. dispatchOverheadMs é quanto o caminho do Quick Request (IPC, herança, auth, sanitizer, histórico) acrescenta a uma requisição em loopback, além do Undici direto. installerMB é o tamanho de cada instalador em dist/ (MiB), conferido por scripts/check-installer-size.mjs; exeMax é a meta própria do .exe do Windows, cujo piso é o próprio Electron (docs/packaging.md). moduleFirstOpenMs e moduleReturnMs são o pior módulo ao abrir pela primeira vez (com o chunk) e ao voltar a ele, e firstRunMs a primeira execução no Quick Request, medidos por scripts/bench-modules.mjs. mcpToolsListChars é o tamanho, em caracteres, da lista de ferramentas que o servidor MCP anuncia (o tools/list inteiro e cada perfil do --tools), conferido por test/mcp-ferramentas.test.ts: ela vai em todo turno do agente nas CLIs que não adiam as ferramentas do MCP (cerca de 4 caracteres por token); enxuto é o tools/list do --enxuto, com a primeira frase e os tipos, e o resto pelo describe_tool.",
+  "coldStartMs": { "max": 800, "enforce": true },
+  "idleMemoryMB": { "max": 150, "enforce": false },
+  "secretEngineMB": { "max": 30, "enforce": true },
+  "dispatchOverheadMs": { "max": 5, "enforce": true },
+  "installerMB": { "max": 85, "exeMax": 95, "enforce": true },
+  "moduleFirstOpenMs": { "max": 400, "enforce": false },
+  "moduleReturnMs": { "max": 100, "enforce": false },
+  "firstRunMs": { "max": 500, "enforce": false },
+  "mcpToolsListChars": { "max": 48000, "profiles": { "leitura": 11000, "contrato": 31000, "docs": 27000 }, "enxuto": 13500, "enforce": true }
+}

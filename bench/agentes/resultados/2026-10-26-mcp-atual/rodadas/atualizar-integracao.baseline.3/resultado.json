@@ -1,0 +1,108 @@
+{
+  "rodada": "atualizar-integracao.baseline.3",
+  "tarefa": "atualizar-integracao",
+  "variante": "baseline",
+  "n": 3,
+  "inicio": "2026-10-26T13:22:57.078Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 6,
+  "passos": 5,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Bash": 4
+  },
+  "tokens": {
+    "entrada": 10,
+    "escritaCache": 18156,
+    "leituraCache": 95766,
+    "saida": 2944,
+    "total": 116876
+  },
+  "custoUsd": 0.1116606,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1116606
+  },
+  "duracaoMs": 20757,
+  "terminou": true,
+  "homolog": {
+    "porta": 39931,
+    "chave": "hk-0c8466c56b11bdc55f8d3411",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O cliente da TransNorte agora usa a base v3 e manda o header `X-Cliente-Id` em toda cotação. Os 11 testes passam, mas só com um `fetch` falso. Não chamei a API real nem a homologação.\n\n- **Cliente:** em `src/frete/transnorte.js`, a base padrão virou `https://api.transnorte.example/v3`. O id do cliente vem de `TRANSNORTE_CLIENTE_ID`, ou do parâmetro `clienteId`, e vai no header `x-cliente-id`. Sem a variável, o header vai vazio, do mesmo jeito que já acontece com a `apiKey`.\n- **Teste:** o teste da TransNorte em `test/frete.test.js` agora confere o header `x-cliente-id`.\n- **`openapi/transnorte.yaml`:** o servidor virou `/v3` e a versão `3.0`. Criei o esquema de segurança `clienteId` (header `X-Cliente-Id`) e o exigi em todas as operações, junto com `apiKey`, não só na cotação.\n- **`docs/frete.md`:** a base padrão virou `/v3` e a tabela de configuração ganhou `TRANSNORTE_CLIENTE_ID`.\n- **`docs/arquitetura.md`:** a linha do cliente TransNorte cita `X-Cliente-Id` e a API v3.\n\nNão sobrou nenhuma menção a `v2` no repositório. O `README.md`, o `docs/guia-de-integracao.md` e o `openapi/loja.yaml` só citam a TransNorte de forma genérica e não precisaram de mudança.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

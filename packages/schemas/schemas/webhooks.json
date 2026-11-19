@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/webhooks.json",
+  "title": "WebhooksConfig",
+  "description": "Servidor local de webhooks, em .vvpost/webhooks.json. Sem o arquivo, o servidor aceita qualquer caminho e responde 200; os hooks dão a cada caminho uma resposta, uma assinatura conferida e um disparo de fluxo ou de cenários.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "URL do schema, usada por editores para autocomplete." },
+    "port": {
+      "type": "integer",
+      "description": "Porta local em que o servidor escuta (só em 127.0.0.1).",
+      "minimum": 1024,
+      "maximum": 65535,
+      "default": 4480
+    },
+    "environment": {
+      "type": "string",
+      "description": "Ambiente que resolve as variáveis das assinaturas e em que os disparos rodam quando o hook não diz outro. Padrão: o primeiro de environments/."
+    },
+    "allowHosts": {
+      "type": "array",
+      "description": "Hosts aceitos no header Host além de localhost e 127.0.0.1, ex.: o domínio de um túnel (ngrok, cloudflared) que repassa para a porta local.",
+      "items": { "type": "string", "pattern": "^[A-Za-z0-9*]([A-Za-z0-9.*-]*[A-Za-z0-9])?$", "maxLength": 253 }
+    },
+    "maxEvents": {
+      "type": "integer",
+      "description": "Eventos guardados em memória; passou disso, os mais antigos saem. Nada vai para o disco.",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 200
+    },
+    "maxBodyKB": {
+      "type": "integer",
+      "description": "Maior corpo aceito, em KB; um corpo maior recebe 413 e o evento fica registrado sem ele.",
+      "minimum": 1,
+      "maximum": 10240,
+      "default": 1024
+    },
+    "hooks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hook" }
+    }
+  },
+  "$defs": {
+    "hook": {
+      "title": "WebhookHook",
+      "type": "object",
+      "description": "Um endpoint do servidor. O hook mais específico vale: caminho exato antes de /*, e o /* mais longo antes do mais curto.",
+      "required": ["id", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador estável, ex.: pagamentos.",
+          "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*$"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "path": {
+          "type": "string",
+          "description": "Caminho atendido, ex.: /pagamentos. Terminado em /* aceita também os subcaminhos.",
+          "pattern": "^/[^?#\\s]*$",
+          "maxLength": 512
+        },
+        "methods": {
+          "type": "array",
+          "description": "Métodos aceitos; os outros recebem 405. Padrão: todos.",
+          "items": { "$ref": "#/$defs/httpMethod" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "response": { "$ref": "#/$defs/response" },
+        "signature": { "$ref": "#/$defs/signature" },
+        "trigger": { "$ref": "#/$defs/trigger" }
+      }
+    },
+    "response": {
+      "title": "WebhookResponse",
+      "type": "object",
+      "description": "O que o servidor responde a quem mandou o evento. Padrão: 200 com {\"received\": true}.",
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "headers": { "type": "object", "additionalProperties": { "type": "string" } },
+        "body": { "tsType": "unknown", "description": "Texto, ou JSON (enviado com application/json)." },
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000,
+          "description": "Espera antes de responder, para simular um receptor lento (e testar o timeout de quem envia)."
+        }
+      }
+    },
+    "signature": {
+      "title": "WebhookSignature",
+      "type": "object",
+      "description": "Assinatura HMAC do corpo, como as do GitHub (X-Hub-Signature-256, prefixo sha256=) e da maioria dos provedores. Um evento sem a assinatura certa recebe 401, fica registrado como recusado e não dispara nada.",
+      "required": ["header", "secret"],
+      "additionalProperties": false,
+      "properties": {
+        "header": { "type": "string", "pattern": "^[A-Za-z0-9!#$%&'*+.^_`|~-]+$", "description": "Header com a assinatura." },
+        "secret": {
+          "type": "string",
+          "description": "Variável do ambiente com a chave, como {{WEBHOOK_SECRET}}: o valor fica no vault local, nunca neste arquivo.",
+          "pattern": "^\\{\\{\\s*[A-Za-z_][A-Za-z0-9_]*\\s*\\}\\}$"
+        },
+        "algorithm": { "type": "string", "enum": ["sha256", "sha1", "sha512"], "default": "sha256" },
+        "encoding": { "type": "string", "enum": ["hex", "base64"], "default": "hex" },
+        "prefix": { "type": "string", "maxLength": 32, "description": "Texto antes do valor no header, ex.: sha256=." }
+      }
+    },
+    "trigger": {
+      "title": "WebhookTrigger",
+      "type": "object",
+      "description": "Roda um fluxo ou os cenários de um conector a cada evento aceito, com os limites de quem dispara sem humano. No fluxo, um nó webhook recebe o evento que disparou.",
+      "additionalProperties": false,
+      "properties": {
+        "flow": { "type": "string", "description": "Id de um fluxo do workspace." },
+        "connector": { "type": "string", "description": "Id do conector cujos cenários rodam." },
+        "scenarios": {
+          "type": "array",
+          "description": "Só com connector: \"<endpoint>\" ou \"<endpoint>/<cenário>\". Padrão: todos os cenários do conector.",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "environment": {
+          "type": "string",
+          "description": "Ambiente da execução. Padrão: o environment do arquivo; \"\" roda sem ambiente."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["flow"] },
+          "then": { "not": { "anyOf": [{ "required": ["connector"] }, { "required": ["scenarios"] }] } }
+        },
+        { "if": { "not": { "required": ["flow"] } }, "then": { "required": ["connector"] } }
+      ]
+    },
+    "httpMethod": {
+      "title": "WebhookHttpMethod",
+      "type": "string",
+      "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+    }
+  }
+}

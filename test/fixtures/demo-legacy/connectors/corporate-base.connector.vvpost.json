@@ -1,0 +1,17 @@
+{
+  "id": "connector.corporate.base",
+  "name": "Corporate Base",
+  "version": "1.0.0",
+  "description": "Base corporativa: URL, tenant, rastreio e OAuth2 client credentials.",
+  "config": {
+    "baseUrl": "{{BASE_URL}}",
+    "headers": { "X-Tenant": "acme", "X-Request-Source": "vvpost" },
+    "auth": {
+      "type": "oauth2",
+      "grantType": "client_credentials",
+      "tokenUrl": "/oauth/token",
+      "clientId": "{{CLIENT_ID}}",
+      "clientSecret": "{{CLIENT_SECRET}}"
+    }
+  }
+}

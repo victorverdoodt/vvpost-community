@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/privacy.json",
+  "title": "PrivacyConfig",
+  "description": "Dados pessoais em .vvpost/privacy.json. No que vai ao agente de IA, os campos marcados com x-sensitive nos schemas do projeto são mascarados sempre, e agent liga a detecção por padrão para os campos não marcados (vale o mais forte entre este arquivo, o --pii-detect do servidor MCP e a política Enterprise). people liga o mesmo mascaramento também no que o app e o CLI mostram a pessoas.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "URL do schema, usada por editores para autocomplete." },
+    "agent": {
+      "type": "object",
+      "description": "O que vai ao agente de IA pelo MCP.",
+      "additionalProperties": false,
+      "properties": {
+        "detect": {
+          "description": "Detecção por padrão nos campos não marcados: true liga todos os tipos (cpf, cnpj, email, phone, card); uma lista liga só esses.",
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "enum": ["cpf", "cnpj", "email", "phone", "card"] }
+            }
+          ],
+          "default": false
+        }
+      }
+    },
+    "people": {
+      "type": "object",
+      "description": "O que o app e o CLI mostram a pessoas: respostas no Quick Request, cenários, fluxos, realtime, webhooks, histórico, terminal e relatórios do vvpost run. Os valores reais continuam indo para a rede.",
+      "additionalProperties": false,
+      "properties": {
+        "mask": {
+          "type": "boolean",
+          "default": false,
+          "description": "true: mascara os campos marcados com x-sensitive também para pessoas. A política da organização pode ligar; nada aqui desliga o que ela ligou."
+        },
+        "detect": {
+          "description": "Com mask: detecção por padrão nos campos não marcados, como em agent.detect.",
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "enum": ["cpf", "cnpj", "email", "phone", "card"] }
+            }
+          ],
+          "default": false
+        }
+      }
+    }
+  }
+}

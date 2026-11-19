@@ -1,0 +1,110 @@
+{
+  "rodada": "atualizar-integracao.baseline.1",
+  "tarefa": "atualizar-integracao",
+  "variante": "baseline",
+  "n": 1,
+  "inicio": "2026-10-26T13:18:55.200Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 18,
+  "passos": 17,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Read": 4,
+    "Bash": 2,
+    "Edit": 10
+  },
+  "tokens": {
+    "entrada": 12,
+    "escritaCache": 17372,
+    "leituraCache": 124580,
+    "saida": 4485,
+    "total": 146449
+  },
+  "custoUsd": 0.12682000000000002,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.12682000000000002
+  },
+  "duracaoMs": 28346,
+  "terminou": true,
+  "homolog": {
+    "porta": 33449,
+    "chave": "hk-9b473835a1451e4d40146d75",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O cliente da TransNorte agora usa a base v3 e envia o header `X-Cliente-Id` em toda chamada. Os 11 testes passam (`npm test`).\n\n- **Cliente (`src/frete/transnorte.js`):** a base padrão passou a ser `https://api.transnorte.example/v3`. O id do cliente vem do parâmetro `clienteId`, que por padrão lê `TRANSNORTE_CLIENTE_ID`. Se a variável não estiver definida, o header vai vazio, do mesmo jeito que já acontecia com a chave.\n- **Teste (`test/frete.test.js`):** agora confere o header `x-cliente-id` e que a URL começa com a base v3.\n- **Especificação (`openapi/transnorte.yaml`):** servidor `/v3` e versão `3.0`. Criei o esquema de segurança `clienteId` (header `X-Cliente-Id`) e o exigi junto com `apiKey` nas 6 operações do arquivo, não só na cotação.\n- **Páginas:** `docs/frete.md` ganhou a variável `TRANSNORTE_CLIENTE_ID` na tabela de configuração e a URL v3. `docs/arquitetura.md` cita o novo header.\n\nUma busca final não achou mais nenhuma menção a `v2` no repositório.\n\nNão rodei nada contra a homologação, porque as chamadas reais à TransNorte não passam por ela. Também não alterei o `README.md` nem o guia de integração, porque nenhum dos dois cita a versão nem os headers.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

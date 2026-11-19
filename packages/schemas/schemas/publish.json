@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/publish.json",
+  "title": "PublishConfig",
+  "description": "Destinos de publicação da documentação, em vvpost.publish.json na raiz do workspace: para onde o \"Enviar para…\" manda a documentação e com que estrutura de pastas e páginas. Vai para o Git; credenciais nunca entram aqui.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["targets"],
+  "properties": {
+    "$schema": { "type": "string", "description": "URL do schema, usada por editores para autocomplete." },
+    "targets": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/target" }
+    }
+  },
+  "$defs": {
+    "target": {
+      "title": "PublishTarget",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "provider", "destination", "structure"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador do destino no workspace.",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 64
+        },
+        "name": { "type": "string", "description": "Nome mostrado no \"Enviar para…\".", "maxLength": 120 },
+        "provider": {
+          "type": "string",
+          "description": "Publicador que envia: html (site estático numa pasta, do próprio VVPost), confluence-cloud (do VVPost Enterprise) ou o exportador de um plugin.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "maxLength": 64
+        },
+        "destination": {
+          "type": "string",
+          "description": "Onde a estrutura começa, no formato do publicador. Num exportador (html ou de plugin) é a pasta de saída, relativa ao workspace (ex.: dist/site). No Confluence Cloud do Enterprise, \"catalog:<id>\" aponta para um destino aprovado no Control Plane.",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "diagrams": {
+          "type": "string",
+          "enum": ["png", "svg", "code"],
+          "default": "png",
+          "description": "Como os diagramas Mermaid vão: imagem PNG, imagem SVG ou só o código."
+        },
+        "site": { "$ref": "#/$defs/siteOptions" },
+        "structure": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "description": "Pastas e páginas na ordem em que aparecem no destino.",
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "published": {
+          "type": "object",
+          "description": "Gravado pelo VVPost depois de cada publicação: o que já existe no destino, pela chave do nó. Não edite à mão.",
+          "maxProperties": 2000,
+          "additionalProperties": { "$ref": "#/$defs/publishedItem" }
+        }
+      }
+    },
+    "siteOptions": {
+      "title": "PublishSiteOptions",
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Opções dos exportadores para pasta (html e os de plugins). Os publicadores remotos ignoram.",
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 120, "description": "Título do site. Padrão: o título do documento do projeto (vvpost.docs.json) ou o nome do projeto." },
+        "changelog": { "type": "boolean", "default": true, "description": "Página \"Mudanças\" com o que mudou em cada exportação (páginas e endpoints novos, alterados e removidos), guardada no vvpost-site.json da pasta." },
+        "backstage": { "type": "boolean", "default": false, "description": "Grava o techdocs_metadata.json do Backstage TechDocs: a pasta vai direto para techdocs-cli publish --directory." },
+        "baseUrl": { "type": "string", "pattern": "^https://", "maxLength": 500, "description": "Endereço público do site, para os links canônicos e o sitemap.xml." }
+      }
+    },
+    "node": {
+      "title": "PublishNode",
+      "oneOf": [
+        { "$ref": "#/$defs/folderNode" },
+        { "$ref": "#/$defs/pageNode" },
+        { "$ref": "#/$defs/pagesNode" },
+        { "$ref": "#/$defs/eachNode" }
+      ]
+    },
+    "key": {
+      "type": "string",
+      "description": "Chave estável do nó. Sem ela, a chave vem da origem ou do caminho de títulos: trocar o título cria outra página.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9:/._#-]*$",
+      "maxLength": 200
+    },
+    "children": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "folderNode": {
+      "title": "PublishFolderNode",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["folder"],
+      "properties": {
+        "folder": { "type": "string", "description": "Título da pasta.", "minLength": 1, "maxLength": 255 },
+        "key": { "$ref": "#/$defs/key" },
+        "children": { "$ref": "#/$defs/children" }
+      }
+    },
+    "pageNode": {
+      "title": "PublishPageNode",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page"],
+      "properties": {
+        "page": { "type": "string", "description": "Título da página.", "minLength": 1, "maxLength": 255 },
+        "source": {
+          "type": "string",
+          "description": "Conteúdo: \"document\" (o documento do projeto), um .md do workspace (com \"#seção\" opcional), \"connector:<id>\" ou \"endpoint:<conector>/<endpoint>\". Sem source, a página só agrupa as filhas.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "key": { "$ref": "#/$defs/key" },
+        "children": { "$ref": "#/$defs/children" }
+      }
+    },
+    "pagesNode": {
+      "title": "PublishPagesNode",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pages"],
+      "properties": {
+        "pages": {
+          "type": "string",
+          "description": "Glob de arquivos .md do workspace (ex.: docs/guias/*.md): uma página por arquivo, em ordem alfabética.",
+          "pattern": "^(?![/\\\\]|[A-Za-z]:)(?!.*(^|[/\\\\])\\.\\.([/\\\\]|$))[^\\u0000]+\\.md$",
+          "maxLength": 260
+        },
+        "title": {
+          "type": "string",
+          "description": "Título de cada página: {{heading}} (o primeiro título do arquivo, o padrão) e {{file}} (o nome sem .md).",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      }
+    },
+    "eachNode": {
+      "title": "PublishEachNode",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["each"],
+      "properties": {
+        "each": { "type": "string", "enum": ["connector"], "description": "Uma página por conector do projeto, com a referência." },
+        "title": {
+          "type": "string",
+          "description": "Título de cada página: {{name}} (o padrão) e {{id}}.",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "split": {
+          "type": "string",
+          "enum": ["sections", "endpoints"],
+          "default": "sections",
+          "description": "sections: os endpoints são seções da página do conector; endpoints: uma página filha por endpoint."
+        },
+        "connectors": {
+          "type": "array",
+          "description": "Só estes conectores (ids), na ordem dada. Padrão: todos, em ordem alfabética.",
+          "maxItems": 500,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    },
+    "publishedItem": {
+      "title": "PublishedItem",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "description": "Id no destino.", "minLength": 1, "maxLength": 200 },
+        "kind": { "type": "string", "enum": ["folder", "page"] },
+        "version": { "type": "integer", "minimum": 1, "description": "Versão no destino depois da última publicação pelo VVPost." },
+        "hash": { "type": "string", "maxLength": 100, "description": "Hash do conteúdo publicado." },
+        "url": { "type": "string", "maxLength": 2000 }
+      }
+    }
+  }
+}

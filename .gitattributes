@@ -1,0 +1,3 @@
+# Texto sempre com LF, inclusive em clones no Windows (core.autocrlf): specs, fixtures e
+# arquivos do workspace são comparados byte a byte nos testes.
+* text=auto eol=lf

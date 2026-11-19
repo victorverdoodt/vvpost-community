@@ -1,0 +1,11 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "connector.customers.v2",
+  "name": "Customers v2",
+  "version": "2.0.0",
+  "extends": "connector.corporate.base",
+  "defaults": {
+    "basePath": "/customers/v2"
+  },
+  "nodes": []
+}

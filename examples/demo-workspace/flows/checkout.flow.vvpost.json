@@ -1,0 +1,27 @@
+{
+  "id": "flow.checkout",
+  "name": "Checkout",
+  "nodes": [
+    { "id": "login", "name": "Login", "type": "request", "request": { "method": "POST", "url": "{{BASE_URL}}/auth/login", "body": { "user": "ana" } } },
+    { "id": "customer", "name": "Customer", "type": "request", "request": { "method": "GET", "url": "{{BASE_URL}}/customers/v2/me", "headers": { "Authorization": "Bearer {{ $nodes.Login.data.token }}" } } },
+    { "id": "cart", "name": "Cart", "type": "request", "request": { "method": "GET", "url": "{{BASE_URL}}/carts/{{ $nodes.Login.data.cartId }}", "headers": { "Authorization": "Bearer {{ $nodes.Login.data.token }}" } } },
+    { "id": "has_items", "name": "HasItems", "type": "condition", "condition": { "target": "$nodes.Cart.data.count", "operator": "greaterThan", "expected": 0 } },
+    {
+      "id": "charge",
+      "name": "Charge",
+      "type": "request",
+      "request": {
+        "connector": "connector.payments.v1",
+        "endpoint": "create_charge",
+        "body": { "amount": "{{ $nodes.Cart.data.total }}", "currency": "BRL", "customer_id": "{{ $nodes.Customer.data.id }}", "method": "PIX" }
+      }
+    }
+  ],
+  "edges": [
+    { "from": "login", "to": "customer" },
+    { "from": "login", "to": "cart" },
+    { "from": "cart", "to": "has_items" },
+    { "from": "customer", "to": "charge" },
+    { "from": "has_items", "to": "charge", "branch": "true" }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": [
+    "id",
+    "nome",
+    "precoCentavos",
+    "pesoGramas"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "nome": {
+      "type": "string"
+    },
+    "precoCentavos": {
+      "type": "integer"
+    },
+    "pesoGramas": {
+      "type": "integer"
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/loja.yaml",
+    "hash": "d3975a8d43227681"
+  }
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      Visualize do ResponseViewer. Roda num iframe sandbox="allow-scripts" (origem opaca: sem acesso
+      ao app, ao preload nem ao Node) e este CSP corta a rede: o template só vê a resposta que o app
+      manda por postMessage.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; media-src data:; font-src data:; form-action 'none'"
+    />
+    <script>
+      window.addEventListener('message', function onMessage(e) {
+        if (e.source !== window.parent || !e.data || e.data.type !== 'vvpost-visualize') return
+        window.removeEventListener('message', onMessage)
+        var r = e.data.response
+        var headers = {}
+        r.headers.forEach(function (h) {
+          headers[h.name.toLowerCase()] = h.value
+        })
+        var response = {
+          status: r.status,
+          code: r.status,
+          statusText: r.statusText,
+          headers: headers,
+          responseTime: r.ms,
+          text: function () {
+            return r.body
+          },
+          json: function () {
+            return JSON.parse(r.body)
+          }
+        }
+        // vv.response e o pm.response do Postman (code, json(), text()).
+        window.vv = { response: response }
+        window.pm = { response: response, visualizer: { set: function () {} } }
+        document.open()
+        document.write(e.data.html)
+        document.close()
+      })
+      window.parent.postMessage({ type: 'vvpost-visualizer-ready' }, '*')
+    </script>
+  </head>
+  <body></body>
+</html>

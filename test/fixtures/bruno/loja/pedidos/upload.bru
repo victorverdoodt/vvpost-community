@@ -1,0 +1,25 @@
+meta {
+  name: Upload
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/upload
+  body: multipartForm
+  auth: awsv4
+}
+
+auth:awsv4 {
+  accessKeyId: AKIAABCDEFGHIJKLMNOP
+  secretAccessKey: segredo-aws
+  sessionToken: 
+  service: s3
+  region: sa-east-1
+  profileName: 
+}
+
+body:multipart-form {
+  nome: arquivo
+  arquivo: @file(docs/nota.pdf)
+}

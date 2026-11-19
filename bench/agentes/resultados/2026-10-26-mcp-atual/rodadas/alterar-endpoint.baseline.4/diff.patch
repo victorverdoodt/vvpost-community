@@ -1,0 +1,217 @@
+diff --git a/docs/frete.md b/docs/frete.md
+index 4353f85..50a0f10 100644
+--- a/docs/frete.md
++++ b/docs/frete.md
+@@ -10,6 +10,8 @@ O frete é cotado na criação do pedido, pelo peso somado dos itens e pelo CEP
+    falha de cada transportadora na mensagem.
+ 
+ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
++O campo `prazoEntregaDias` traz o prazo informado por ela, sem conversão: a TransNorte informa em
++dias úteis (`prazoDiasUteis`) e a EntregaJá em dias corridos (`prazo`).
+ 
+ ## Configuração
+ 
+diff --git a/docs/guia-de-integracao.md b/docs/guia-de-integracao.md
+index 7b30140..9cb5073 100644
+--- a/docs/guia-de-integracao.md
++++ b/docs/guia-de-integracao.md
+@@ -4,8 +4,9 @@ Este guia mostra como um canal de venda cria e acompanha um pedido.
+ 
+ ## Criar um pedido
+ 
+-Mande os itens e o `cep` de entrega (com ou sem hífen). A API soma os itens, cota o frete e
+-devolve o pedido com o total.
++Mande os itens e o `cepEntrega` (com ou sem hífen). A API soma os itens, cota o frete e
++devolve o pedido com o total e o `prazoEntregaDias`, o prazo em dias informado pela
++transportadora que cotou (veja `docs/frete.md`).
+ 
+ ```http
+ POST /pedidos
+@@ -13,7 +14,7 @@ Content-Type: application/json
+ 
+ {
+   "itens": [{ "produtoId": "p-100", "quantidade": 2 }],
+-  "cep": "01310-100"
++  "cepEntrega": "01310-100"
+ }
+ ```
+ 
+@@ -22,11 +23,12 @@ Content-Type: application/json
+   "id": "ped-1001",
+   "status": "aguardando_pagamento",
+   "itens": [{ "produtoId": "p-100", "quantidade": 2, "precoCentavos": 4990 }],
+-  "cep": "01310100",
++  "cepEntrega": "01310100",
+   "subtotalCentavos": 9980,
+   "freteCentavos": 1990,
+   "totalCentavos": 11970,
+   "transportadora": "transnorte",
++  "prazoEntregaDias": 3,
+   "criadoEm": "2026-03-01T12:00:00.000Z"
+ }
+ ```
+diff --git a/openapi/loja.yaml b/openapi/loja.yaml
+index f3eb775..76fcd13 100644
+--- a/openapi/loja.yaml
++++ b/openapi/loja.yaml
+@@ -68,7 +68,7 @@ paths:
+               itens:
+                 - produtoId: p-100
+                   quantidade: 2
+-              cep: 01310-100
++              cepEntrega: 01310-100
+       responses:
+         '201':
+           description: Pedido criado
+@@ -83,11 +83,12 @@ paths:
+                   - produtoId: p-100
+                     quantidade: 2
+                     precoCentavos: 4990
+-                cep: '01310100'
++                cepEntrega: '01310100'
+                 subtotalCentavos: 9980
+                 freteCentavos: 1990
+                 totalCentavos: 11970
+                 transportadora: transnorte
++                prazoEntregaDias: 3
+                 criadoEm: '2026-03-01T12:00:00.000Z'
+         '400':
+           $ref: '#/components/responses/Erro'
+@@ -172,7 +173,7 @@ components:
+       enum: [aguardando_pagamento, pago, enviado, cancelado]
+     NovoPedido:
+       type: object
+-      required: [itens, cep]
++      required: [itens, cepEntrega]
+       properties:
+         itens:
+           type: array
+@@ -183,13 +184,13 @@ components:
+             properties:
+               produtoId: { type: string }
+               quantidade: { type: integer, minimum: 1, default: 1 }
+-        cep:
++        cepEntrega:
+           type: string
+           pattern: '^\d{5}-?\d{3}$'
+           description: CEP de entrega, com ou sem hífen
+     Pedido:
+       type: object
+-      required: [id, status, itens, cep, subtotalCentavos, freteCentavos, totalCentavos, transportadora, criadoEm]
++      required: [id, status, itens, cepEntrega, subtotalCentavos, freteCentavos, totalCentavos, transportadora, prazoEntregaDias, criadoEm]
+       properties:
+         id: { type: string }
+         status: { $ref: '#/components/schemas/StatusPedido' }
+@@ -201,13 +202,16 @@ components:
+               produtoId: { type: string }
+               quantidade: { type: integer }
+               precoCentavos: { type: integer }
+-        cep: { type: string, description: CEP de entrega só com dígitos }
++        cepEntrega: { type: string, description: CEP de entrega só com dígitos }
+         subtotalCentavos: { type: integer }
+         freteCentavos: { type: integer }
+         totalCentavos: { type: integer }
+         transportadora:
+           type: string
+           enum: [transnorte, entregaja]
++        prazoEntregaDias:
++          type: integer
++          description: Prazo de entrega em dias informado pela transportadora que cotou o frete (TransNorte em dias úteis, EntregaJá em dias corridos)
+         criadoEm: { type: string, format: date-time }
+         motivoCancelamento: { type: [string, 'null'] }
+     Erro:
+diff --git a/src/pedidos.js b/src/pedidos.js
+index 5fa4990..cd60d6a 100644
+--- a/src/pedidos.js
++++ b/src/pedidos.js
+@@ -12,7 +12,7 @@ export function criarPedidos({ frete, agora = () => new Date() }) {
+       if (!entrada || !Array.isArray(entrada.itens) || entrada.itens.length === 0) {
+         throw new ErroApi(400, 'ITENS_OBRIGATORIOS', 'Informe ao menos um item')
+       }
+-      if (typeof entrada.cep !== 'string' || !CEP.test(entrada.cep)) {
++      if (typeof entrada.cepEntrega !== 'string' || !CEP.test(entrada.cepEntrega)) {
+         throw new ErroApi(400, 'CEP_INVALIDO', 'CEP deve ter 8 dígitos')
+       }
+       let subtotal = 0
+@@ -25,7 +25,7 @@ export function criarPedidos({ frete, agora = () => new Date() }) {
+         peso += produto.pesoGramas * quantidade
+         return { produtoId: produto.id, quantidade, precoCentavos: produto.precoCentavos }
+       })
+-      const cepDestino = entrada.cep.replace('-', '')
++      const cepDestino = entrada.cepEntrega.replace('-', '')
+       let cotacao
+       try {
+         cotacao = await frete.cotar({ cepDestino, pesoGramas: peso })
+@@ -37,11 +37,12 @@ export function criarPedidos({ frete, agora = () => new Date() }) {
+         id,
+         status: 'aguardando_pagamento',
+         itens,
+-        cep: cepDestino,
++        cepEntrega: cepDestino,
+         subtotalCentavos: subtotal,
+         freteCentavos: cotacao.valorCentavos,
+         totalCentavos: subtotal + cotacao.valorCentavos,
+         transportadora: cotacao.transportadora,
++        prazoEntregaDias: cotacao.prazoDias,
+         criadoEm: agora().toISOString()
+       }
+       pedidos.set(id, pedido)
+diff --git a/test/pedidos.test.js b/test/pedidos.test.js
+index e4c732c..6c2cc0d 100644
+--- a/test/pedidos.test.js
++++ b/test/pedidos.test.js
+@@ -8,37 +8,38 @@ const novoApp = (frete = freteFixo()) => criarApp({ frete, agora: agoraFixo })
+ test('POST /pedidos cria o pedido com frete e total', async () => {
+   const frete = freteFixo({ valorCentavos: 1990 })
+   const app = novoApp(frete)
+-  const r = await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100', quantidade: 2 }], cep: '01310-100' })
++  const r = await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100', quantidade: 2 }], cepEntrega: '01310-100' })
+   assert.equal(r.status, 201)
+   assert.equal(r.body.subtotalCentavos, 9980)
+   assert.equal(r.body.freteCentavos, 1990)
+   assert.equal(r.body.totalCentavos, 11970)
+-  assert.equal(r.body.cep, '01310100')
++  assert.equal(r.body.cepEntrega, '01310100')
++  assert.equal(r.body.prazoEntregaDias, 4)
+   assert.equal(r.body.status, 'aguardando_pagamento')
+   assert.deepEqual(frete.chamadas[0], { cepDestino: '01310100', pesoGramas: 700 })
+ })
+ 
+ test('POST /pedidos recusa CEP inválido', async () => {
+-  const r = await novoApp().handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cep: '123' })
++  const r = await novoApp().handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cepEntrega: '123' })
+   assert.equal(r.status, 400)
+   assert.equal(r.body.erro.codigo, 'CEP_INVALIDO')
+ })
+ 
+ test('POST /pedidos recusa pedido sem itens', async () => {
+-  const r = await novoApp().handle('POST', '/pedidos', { itens: [], cep: '01310100' })
++  const r = await novoApp().handle('POST', '/pedidos', { itens: [], cepEntrega: '01310100' })
+   assert.equal(r.status, 400)
+   assert.equal(r.body.erro.codigo, 'ITENS_OBRIGATORIOS')
+ })
+ 
+ test('POST /pedidos recusa produto inexistente', async () => {
+-  const r = await novoApp().handle('POST', '/pedidos', { itens: [{ produtoId: 'p-999' }], cep: '01310100' })
++  const r = await novoApp().handle('POST', '/pedidos', { itens: [{ produtoId: 'p-999' }], cepEntrega: '01310100' })
+   assert.equal(r.status, 422)
+ })
+ 
+ test('GET /pedidos filtra por status', async () => {
+   const app = novoApp()
+-  const a = await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cep: '01310100' })
+-  await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-200' }], cep: '01310100' })
++  const a = await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cepEntrega: '01310100' })
++  await app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-200' }], cepEntrega: '01310100' })
+   await app.handle('POST', `/pedidos/${a.body.id}/cancelamento`, { motivo: 'desistiu' })
+   const r = await app.handle('GET', '/pedidos?status=cancelado')
+   assert.equal(r.body.pedidos.length, 1)
+@@ -53,7 +54,7 @@ test('GET /pedidos/{id} devolve 404 para pedido que não existe', async () => {
+ 
+ test('POST /pedidos devolve 503 quando nenhuma transportadora cota', async () => {
+   const frete = { cotar: async () => { throw new Error('fora do ar') } }
+-  const r = await novoApp(frete).handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cep: '01310100' })
++  const r = await novoApp(frete).handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cepEntrega: '01310100' })
+   assert.equal(r.status, 503)
+   assert.equal(r.body.erro.codigo, 'FRETE_INDISPONIVEL')
+ })

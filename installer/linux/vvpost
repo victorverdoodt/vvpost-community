@@ -1,0 +1,3 @@
+#!/bin/sh
+# /usr/bin/vvpost do pacote .deb: o CLI que vem com o app em /opt/VVPost.
+exec /opt/VVPost/resources/bin/vvpost "$@"

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/connector.json",
+  "id": "connector.billing.v2",
+  "name": "Billing Service API",
+  "version": "2.0.0",
+  "extends": "connector.corporate.base",
+  "config": {
+    "basePath": "/billing/v2",
+    "headers": {
+      "X-Service-Client": "VVPost"
+    }
+  },
+  "endpoints": [
+    {
+      "id": "charge_customer",
+      "name": "Efetuar Cobrança",
+      "method": "POST",
+      "path": "/charges",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "bodySchema": {
+        "type": "object",
+        "required": ["amount", "customerId", "method"],
+        "properties": {
+          "amount": { "type": "number" },
+          "customerId": { "type": "string" },
+          "method": { "type": "string", "enum": ["PIX", "CREDIT_CARD"] }
+        }
+      },
+      "scenarios": [
+        {
+          "id": "tc_pix_success",
+          "name": "Cenário 1: Sucesso com PIX",
+          "overrides": {
+            "body": {
+              "amount": 150.00,
+              "customerId": "cust_valid_1",
+              "method": "PIX"
+            }
+          },
+          "assertions": [
+            { "target": "status", "operator": "equals", "expected": 200 },
+            { "target": "responseTimeMs", "operator": "lessThan", "expected": 800 },
+            { "target": "body.status", "operator": "equals", "expected": "PENDING" }
+          ]
+        }
+      ]
+    }
+  ]
+}

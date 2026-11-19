@@ -1,0 +1,30 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.cancelarColeta",
+  "name": "Cancela uma coleta ainda não feita",
+  "extends": "transnorte",
+  "order": 5,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "DELETE",
+        "url": "/coletas/{id}"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-204",
+      "name": "204 Coleta cancelada",
+      "status": 204
+    },
+    {
+      "id": "erro-409",
+      "name": "409 Coleta já feita",
+      "status": 409
+    }
+  ]
+}

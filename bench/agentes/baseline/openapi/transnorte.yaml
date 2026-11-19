@@ -1,0 +1,242 @@
+openapi: 3.1.0
+info:
+  title: TransNorte
+  version: '2.0'
+  description: Transportadora principal da Loja. A Loja usa a cotação de frete; as outras rotas ficam para o painel de logística.
+servers:
+  - url: https://api.transnorte.example/v2
+paths:
+  /cotacoes:
+    post:
+      operationId: cotarFrete
+      summary: Cota o frete para um CEP
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cepDestino, pesoKg]
+              properties:
+                cepDestino: { type: string, pattern: '^\d{8}$' }
+                pesoKg: { type: number }
+            example:
+              cepDestino: '01310100'
+              pesoKg: 0.7
+      responses:
+        '200':
+          description: Cotação
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valor, prazoDiasUteis]
+                properties:
+                  valor: { type: number, description: Valor em reais }
+                  prazoDiasUteis: { type: integer }
+              example:
+                valor: 19.9
+                prazoDiasUteis: 3
+  /rastreamentos/{codigo}:
+    get:
+      operationId: rastrear
+      summary: Eventos de rastreio de um envio
+      security:
+        - apiKey: []
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Rastreio
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [codigo, eventos]
+                properties:
+                  codigo: { type: string }
+                  eventos:
+                    type: array
+                    items:
+                      type: object
+                      required: [quando, descricao]
+                      properties:
+                        quando: { type: string, format: date-time }
+                        descricao: { type: string }
+                        cidade: { type: string }
+              example:
+                codigo: TN123456789BR
+                eventos:
+                  - quando: '2026-03-02T09:00:00Z'
+                    descricao: Objeto postado
+                    cidade: São Paulo
+        '404':
+          description: Código desconhecido
+  /coletas:
+    post:
+      operationId: agendarColeta
+      summary: Agenda a coleta de volumes
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cepOrigem, volumes, data]
+              properties:
+                cepOrigem: { type: string, pattern: '^\d{8}$' }
+                volumes: { type: integer, minimum: 1 }
+                data: { type: string, format: date }
+            example:
+              cepOrigem: '04538133'
+              volumes: 3
+              data: '2026-03-03'
+      responses:
+        '201':
+          description: Coleta agendada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coleta'
+  /coletas/{id}:
+    get:
+      operationId: obterColeta
+      summary: Situação de uma coleta
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: '#/components/parameters/IdColeta'
+      responses:
+        '200':
+          description: Coleta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coleta'
+        '404':
+          description: Coleta desconhecida
+    delete:
+      operationId: cancelarColeta
+      summary: Cancela uma coleta ainda não feita
+      security:
+        - apiKey: []
+      parameters:
+        - $ref: '#/components/parameters/IdColeta'
+      responses:
+        '204':
+          description: Coleta cancelada
+        '409':
+          description: Coleta já feita
+  /etiquetas:
+    post:
+      operationId: gerarEtiqueta
+      summary: Gera a etiqueta de um envio
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pedido, cepDestino, pesoKg]
+              properties:
+                pedido: { type: string }
+                cepDestino: { type: string, pattern: '^\d{8}$' }
+                pesoKg: { type: number }
+            example:
+              pedido: ped-1001
+              cepDestino: '01310100'
+              pesoKg: 0.7
+      responses:
+        '201':
+          description: Etiqueta gerada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Etiqueta'
+  /etiquetas/{codigo}:
+    get:
+      operationId: obterEtiqueta
+      summary: Uma etiqueta, com o PDF
+      security:
+        - apiKey: []
+      parameters:
+        - name: codigo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Etiqueta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Etiqueta'
+  /pontos-de-entrega:
+    get:
+      operationId: listarPontos
+      summary: Pontos de retirada perto de um CEP
+      security:
+        - apiKey: []
+      parameters:
+        - name: cep
+          in: query
+          required: true
+          schema: { type: string }
+        - name: raioKm
+          in: query
+          required: false
+          schema: { type: integer, default: 5 }
+      responses:
+        '200':
+          description: Pontos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pontos:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        nome: { type: string }
+                        endereco: { type: string }
+                        distanciaKm: { type: number }
+components:
+  parameters:
+    IdColeta:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  schemas:
+    Coleta:
+      type: object
+      required: [id, situacao, data]
+      properties:
+        id: { type: string }
+        situacao: { type: string, enum: [agendada, feita, cancelada] }
+        data: { type: string, format: date }
+        volumes: { type: integer }
+    Etiqueta:
+      type: object
+      required: [codigo, pdfUrl]
+      properties:
+        codigo: { type: string }
+        pdfUrl: { type: string, format: uri }
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Chave em TRANSNORTE_API_KEY

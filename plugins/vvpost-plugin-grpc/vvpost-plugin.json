@@ -1,0 +1,45 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/plugin.json",
+  "id": "vvpost-plugin-grpc",
+  "name": "gRPC",
+  "version": "1.0.0",
+  "description": "Adapter de protocolo gRPC: chamadas unárias e de streaming sobre HTTP/2, com os tipos de um .proto colado no nó ou lidos do servidor pelo reflection. O conector do nó dá o endereço (grpc:// ou grpcs://), a auth (como metadata) e o mTLS.",
+  "author": "VVPost",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/plugins.md",
+  "main": "index.js",
+  "apiVersion": 1,
+  "permissions": {
+    "network": ["connector"],
+    "connectorCredentials": true
+  },
+  "contributes": {
+    "adapters": [
+      {
+        "protocol": "grpc",
+        "title": "gRPC",
+        "description": "Chama um método gRPC. A saída tem data (a resposta em JSON; uma lista em server streaming), status (200 com OK, ou o HTTP equivalente ao status do gRPC) e headers (com grpc-status e grpc-message).",
+        "fields": [
+          { "key": "service", "label": "Serviço", "type": "text", "required": true, "placeholder": "helloworld.Greeter", "description": "Nome completo do serviço (pacote.Serviço), ou só o nome se for único." },
+          { "key": "method", "label": "Método", "type": "text", "required": true, "placeholder": "SayHello" },
+          {
+            "key": "message",
+            "label": "Mensagem",
+            "type": "json",
+            "default": {},
+            "description": "A requisição em JSON (mapeamento do proto3: nomes em camelCase ou como no .proto, int64 em texto, bytes em base64, enums pelo nome). Em client streaming, uma lista envia várias mensagens."
+          },
+          {
+            "key": "proto",
+            "label": ".proto",
+            "type": "code",
+            "language": "protobuf",
+            "templates": false,
+            "description": "Opcional. Sem ele, os tipos vêm do server reflection. Com imports que não são do google/protobuf, cole os arquivos em sequência, cada um começando com syntax."
+          },
+          { "key": "metadata", "label": "Metadata", "type": "json", "description": "Objeto { \"nome\": \"valor\" }, somado aos headers e à auth do conector." },
+          { "key": "emitDefaults", "label": "Mostrar campos com valor padrão", "type": "boolean", "default": true, "description": "Como o EmitUnpopulated do protobuf: 0, \"\", false e listas vazias aparecem na saída." }
+        ]
+      }
+    ]
+  }
+}

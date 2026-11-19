@@ -1,0 +1,77 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.rastrear",
+  "name": "Eventos de rastreio de um envio",
+  "extends": "transnorte",
+  "order": 2,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/rastreamentos/{codigo}"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Rastreio",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "codigo": "TN123456789BR",
+        "eventos": [
+          {
+            "quando": "2026-03-02T09:00:00Z",
+            "descricao": "Objeto postado",
+            "cidade": "São Paulo"
+          }
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "required": [
+          "codigo",
+          "eventos"
+        ],
+        "properties": {
+          "codigo": {
+            "type": "string"
+          },
+          "eventos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "quando",
+                "descricao"
+              ],
+              "properties": {
+                "quando": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "descricao": {
+                  "type": "string"
+                },
+                "cidade": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "erro-404",
+      "name": "404 Código desconhecido",
+      "status": 404
+    }
+  ]
+}

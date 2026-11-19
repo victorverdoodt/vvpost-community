@@ -1,0 +1,109 @@
+{
+  "rodada": "remover-dependencia.baseline.3",
+  "tarefa": "remover-dependencia",
+  "variante": "baseline",
+  "n": 3,
+  "inicio": "2026-10-26T13:21:52.059Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 23,
+  "passos": 22,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 1,
+    "Bash": 5,
+    "Edit": 16
+  },
+  "tokens": {
+    "entrada": 14,
+    "escritaCache": 19190,
+    "leituraCache": 152619,
+    "saida": 6806,
+    "total": 178629
+  },
+  "custoUsd": 0.1601099,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1601099
+  },
+  "duracaoMs": 57660,
+  "terminou": true,
+  "homolog": {
+    "porta": 33471,
+    "chave": "hk-1ee6cb2f51dd49de1a4eb1d0",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "A integração com a EntregaJá foi removida. O frete agora é cotado só pela TransNorte, e, se ela falhar, o pedido continua sendo recusado com `503 FRETE_INDISPONIVEL`. Os 9 testes passam e uma busca por \"entregaj\", \"reserva\" e \"fallback\" não acha mais nada no repositório. Não rodei a API de homologação.\n\n- **Código:**\n  - Apaguei `src/frete/entregaja.js`.\n  - `src/frete/index.js` usa só `criarTransNorte()`.\n  - Mantive a estrutura de lista de provedores, que agora tem um item só.\n- **Testes:** tirei os dois testes da EntregaJá (cotação e uso como reserva) e troquei o teste de \"todas falham\" por um que confere o erro `transnorte: timeout` quando a TransNorte falha.\n- **Especificação:**\n  - Apaguei `openapi/entregaja.yaml`.\n  - Em `openapi/loja.yaml`, o enum de `transportadora` virou `[transnorte]` e a descrição do `POST /pedidos` foi ajustada.\n- **Páginas:**\n  - Atualizei `docs/frete.md`, incluindo a remoção das variáveis `ENTREGAJA_URL` e `ENTREGAJA_TOKEN`.\n  - Atualizei também `docs/arquitetura.md` (texto, diagrama e tabela de componentes), `docs/guia-de-integracao.md`, `README.md` e `CLAUDE.md`.\n\nPedidos já gravados com `transportadora: \"entregaja\"` deixariam de bater com o enum novo. O código só guarda pedidos em memória, e não vi persistência no repositório, então não tratei isso.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

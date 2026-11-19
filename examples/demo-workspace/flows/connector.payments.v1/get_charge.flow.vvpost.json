@@ -1,0 +1,18 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "connector.payments.v1.get_charge",
+  "name": "Consultar cobrança",
+  "extends": "connector.payments.v1",
+  "order": 2,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/charges/{{charge_id}}"
+      }
+    }
+  ]
+}

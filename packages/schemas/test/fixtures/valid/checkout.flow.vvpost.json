@@ -1,0 +1,70 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "flow.checkout",
+  "name": "Checkout",
+  "description": "Login, consulta o cliente e o carrinho em paralelo, calcula o total em Python e cobra só se houver itens.",
+  "nodes": [
+    {
+      "id": "login",
+      "name": "Login",
+      "type": "request",
+      "position": { "x": 0, "y": 0 },
+      "request": { "method": "POST", "url": "{{BASE_URL}}/auth/login", "body": { "user": "{{USER}}", "password": "{{PASSWORD}}" } }
+    },
+    {
+      "id": "customer",
+      "name": "Customer",
+      "type": "request",
+      "position": { "x": 280, "y": -80 },
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/customers/me",
+        "headers": { "Authorization": "Bearer {{ $nodes.Login.data.token }}" }
+      }
+    },
+    {
+      "id": "cart",
+      "name": "Cart",
+      "type": "request",
+      "position": { "x": 280, "y": 80 },
+      "request": {
+        "method": "GET",
+        "url": "{{BASE_URL}}/carts/{{ $nodes.Login.data.cartId }}",
+        "headers": { "Authorization": "Bearer {{ $nodes.Login.data.token }}" }
+      }
+    },
+    {
+      "id": "total",
+      "name": "Total",
+      "type": "python",
+      "position": { "x": 560, "y": 0 },
+      "python": { "code": "items = nodes['Cart']['data']['items']\noutput = {'count': len(items), 'amount': sum(i['price'] for i in items)}" }
+    },
+    {
+      "id": "has_items",
+      "name": "HasItems",
+      "type": "condition",
+      "position": { "x": 840, "y": 0 },
+      "condition": { "target": "$nodes.Total.data.count", "operator": "greaterThan", "expected": 0 }
+    },
+    {
+      "id": "charge",
+      "name": "Charge",
+      "type": "request",
+      "position": { "x": 1120, "y": 0 },
+      "request": {
+        "connector": "connector.billing.v2",
+        "endpoint": "charge_customer",
+        "body": { "amount": "{{ $nodes.Total.data.amount }}", "customerId": "{{ $nodes.Customer.data.id }}", "method": "PIX" }
+      }
+    }
+  ],
+  "edges": [
+    { "from": "login", "to": "customer" },
+    { "from": "login", "to": "cart" },
+    { "from": "customer", "to": "total" },
+    { "from": "cart", "to": "total" },
+    { "from": "total", "to": "has_items" },
+    { "from": "has_items", "to": "charge", "branch": "true" }
+  ]
+}

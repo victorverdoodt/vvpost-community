@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vvpost.dev/schemas/v1/docs.json",
+  "title": "DocsConfig",
+  "description": "Modelo da documentação do projeto, em vvpost.docs.json na raiz do workspace: o documento-fonte em Markdown (com trechos gerados e de outras docs) e o formato aplicado à visualização e ao PDF de qualquer nível (logo, capa, cabeçalho, rodapé, cores, página).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "URL do schema, usada por editores para autocomplete." },
+    "source": {
+      "type": "string",
+      "description": "Documento-fonte em Markdown, relativo ao workspace. Padrão: docs/projeto.md.",
+      "pattern": "^(?![/\\\\]|[A-Za-z]:)(?!.*(^|[/\\\\])\\.\\.([/\\\\]|$))[^\\u0000]+\\.md$",
+      "maxLength": 260
+    },
+    "title": { "type": "string", "description": "Título do documento do projeto. Padrão: \"Documentação de <projeto>\".", "maxLength": 200 },
+    "subtitle": { "type": "string", "maxLength": 300 },
+    "version": { "type": "string", "description": "Versão do documento, na capa e em {{version}}.", "maxLength": 60 },
+    "organization": { "type": "string", "description": "Organização ou equipe, na capa e em {{organization}}.", "maxLength": 200 },
+    "logo": {
+      "type": "string",
+      "description": "Imagem do logo (PNG, JPEG, SVG, WebP ou GIF, até 1 MB), relativa ao workspace.",
+      "pattern": "^(?![/\\\\]|[A-Za-z]:)(?!.*(^|[/\\\\])\\.\\.([/\\\\]|$))[^\\u0000]+\\.([Pp][Nn][Gg]|[Jj][Pp][Ee]?[Gg]|[Ss][Vv][Gg]|[Ww][Ee][Bb][Pp]|[Gg][Ii][Ff])$",
+      "maxLength": 260
+    },
+    "cover": { "type": "boolean", "description": "Capa do documento do projeto, com logo, título, subtítulo, organização, versão e data.", "default": true },
+    "toc": { "type": "boolean", "description": "Sumário no início do documento do projeto.", "default": true },
+    "numberHeadings": { "type": "boolean", "description": "Numera as seções (1, 1.1, 1.1.1) no documento do projeto.", "default": false },
+    "methodology": {
+      "type": "string",
+      "description": "Nome do modelo de documentação aplicado por último (ex.: C4, arc42), mostrado no estilo da documentação. Não muda o documento.",
+      "maxLength": 200
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "primary": { "$ref": "#/$defs/color", "description": "Cor de destaque: linhas dos títulos, citações e capa." },
+        "heading": { "$ref": "#/$defs/color", "description": "Cor dos títulos." },
+        "text": { "$ref": "#/$defs/color", "description": "Cor do texto." },
+        "font": { "$ref": "#/$defs/font", "description": "Fonte do texto." },
+        "headingFont": { "$ref": "#/$defs/font", "description": "Fonte dos títulos. Padrão: a do texto." }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "size": { "enum": ["A4", "Letter", "Legal"], "default": "A4" },
+        "orientation": { "enum": ["portrait", "landscape"], "default": "portrait" },
+        "margins": { "enum": ["narrow", "normal", "wide"], "default": "normal" }
+      }
+    },
+    "header": { "$ref": "#/$defs/band" },
+    "footer": { "$ref": "#/$defs/band" }
+  },
+  "$defs": {
+    "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "font": { "enum": ["sans", "serif", "mono"] },
+    "band": {
+      "title": "DocsBand",
+      "type": "object",
+      "description": "Cabeçalho ou rodapé de cada página (sem rodapé no arquivo: título à esquerda e página à direita). Texto à esquerda, ao centro e à direita, com {{title}}, {{subtitle}}, {{project}}, {{version}}, {{organization}}, {{date}}, {{page}} e {{pages}}.",
+      "additionalProperties": false,
+      "properties": {
+        "left": { "type": "string", "maxLength": 200 },
+        "center": { "type": "string", "maxLength": 200 },
+        "right": { "type": "string", "maxLength": 200 },
+        "logo": { "enum": ["left", "right", "none"], "description": "Onde o logo entra na faixa.", "default": "none" }
+      }
+    }
+  }
+}

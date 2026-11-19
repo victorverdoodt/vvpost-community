@@ -1,0 +1,112 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "loja-api.criarPedido",
+  "name": "Cria um pedido e cota o frete",
+  "description": "Soma os itens, cota o frete com a TransNorte e, se ela não responder, com a EntregaJá. Sem nenhuma cotação, devolve 503.",
+  "extends": "loja-api",
+  "order": 3,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "POST",
+        "url": "/pedidos",
+        "body": {
+          "itens": [
+            {
+              "produtoId": "p-100",
+              "quantidade": 2
+            }
+          ],
+          "cep": "01310-100"
+        },
+        "bodySchema": {
+          "$ref": "schema:NovoPedido"
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-201",
+      "name": "201 Pedido criado",
+      "status": 201,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "id": "ped-1001",
+        "status": "aguardando_pagamento",
+        "itens": [
+          {
+            "produtoId": "p-100",
+            "quantidade": 2,
+            "precoCentavos": 4990
+          }
+        ],
+        "cep": "01310100",
+        "subtotalCentavos": 9980,
+        "freteCentavos": 1990,
+        "totalCentavos": 11970,
+        "transportadora": "transnorte",
+        "criadoEm": "2026-03-01T12:00:00.000Z"
+      },
+      "schema": {
+        "$ref": "schema:Pedido"
+      }
+    },
+    {
+      "id": "erro-400",
+      "name": "400 Erro com código estável",
+      "status": 400,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "erro": {
+          "codigo": "string",
+          "mensagem": "string"
+        }
+      },
+      "schema": {
+        "$ref": "schema:Erro"
+      }
+    },
+    {
+      "id": "erro-422",
+      "name": "422 Erro com código estável",
+      "status": 422,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "erro": {
+          "codigo": "string",
+          "mensagem": "string"
+        }
+      },
+      "schema": {
+        "$ref": "schema:Erro"
+      }
+    },
+    {
+      "id": "erro-503",
+      "name": "503 Erro com código estável",
+      "status": 503,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "erro": {
+          "codigo": "string",
+          "mensagem": "string"
+        }
+      },
+      "schema": {
+        "$ref": "schema:Erro"
+      }
+    }
+  ]
+}

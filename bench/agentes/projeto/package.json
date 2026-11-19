@@ -1,0 +1,11 @@
+{
+  "name": "loja-api",
+  "version": "1.3.0",
+  "private": true,
+  "type": "module",
+  "description": "API de pedidos da Loja de exemplo",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

@@ -1,0 +1,324 @@
+diff --git a/README.md b/README.md
+index 2d238bb..8bfc130 100644
+--- a/README.md
++++ b/README.md
+@@ -1,7 +1,7 @@
+ # Loja API
+ 
+ API de pedidos da Loja: produtos, pedidos, cancelamento e cotação de frete com as transportadoras
+-parceiras (TransNorte e, como reserva, EntregaJá).
++parceiras (TransNorte).
+ 
+ ```bash
+ npm start   # http://localhost:3000
+diff --git a/api/docs/arquitetura.md b/api/docs/arquitetura.md
+index da7aee2..310c5e0 100644
+--- a/api/docs/arquitetura.md
++++ b/api/docs/arquitetura.md
+@@ -1,8 +1,7 @@
+ # Arquitetura
+ 
+ A Loja API recebe os pedidos do site e do app, guarda os pedidos e cota o frete com as
+-transportadoras parceiras. A TransNorte é a transportadora principal; a EntregaJá é a reserva,
+-chamada só quando a TransNorte não responde.
++transportadoras parceiras. A TransNorte é a transportadora de frete; se ela não responde, o pedido é recusado com 503.
+ 
+ ```mermaid
+ C4Context
+@@ -10,10 +9,8 @@ C4Context
+   Person(cliente, "Cliente", "Compra pelo site ou pelo app")
+   System(loja, "Loja API", "Pedidos e frete")
+   System_Ext(transnorte, "TransNorte", "Cotação de frete e rastreio")
+-  System_Ext(entregaja, "EntregaJá", "Cotação de frete (reserva)")
+   Rel(cliente, loja, "Faz pedidos", "HTTPS")
+   Rel(loja, transnorte, "Cota o frete", "HTTPS")
+-  Rel(loja, entregaja, "Cota o frete se a TransNorte falhar", "HTTPS")
+ ```
+ 
+ ## Componentes
+@@ -22,7 +19,6 @@ C4Context
+ | --- | --- | --- |
+ | Rotas | `src/app.js` | Traduz método e caminho para as operações de pedidos |
+ | Pedidos | `src/pedidos.js` | Valida, soma os itens, cota o frete e guarda o pedido |
+-| Frete | `src/frete/index.js` | Tenta as transportadoras em ordem: TransNorte, depois EntregaJá |
++| Frete | `src/frete/index.js` | Cota o frete com a TransNorte |
+ | Cliente TransNorte | `src/frete/transnorte.js` | Conector `transnorte`, `POST /cotacoes` |
+-| Cliente EntregaJá | `src/frete/entregaja.js` | Conector `entregaja`, `GET /v1/frete` |
+ | Catálogo | `src/produtos.js` | Produtos, preços e pesos |
+diff --git a/api/docs/frete.md b/api/docs/frete.md
+index 4353f85..83273eb 100644
+--- a/api/docs/frete.md
++++ b/api/docs/frete.md
+@@ -4,12 +4,10 @@ O frete é cotado na criação do pedido, pelo peso somado dos itens e pelo CEP
+ 
+ 1. A Loja pede a cotação à **TransNorte** (`POST /cotacoes`, peso em kg). O valor vem em reais e
+    é convertido para centavos.
+-2. Se a TransNorte falhar (erro HTTP ou rede), a Loja pede à **EntregaJá** (`GET /v1/frete`, peso
+-   em gramas). O valor já vem em centavos.
+-3. Se as duas falharem, o pedido não é criado e a API devolve `503 FRETE_INDISPONIVEL`, com a
+-   falha de cada transportadora na mensagem.
++2. Se a TransNorte falhar (erro HTTP ou rede), o pedido não é criado e a API devolve
++   `503 FRETE_INDISPONIVEL`, com a falha da transportadora na mensagem.
+ 
+-O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
++O campo `transportadora` do pedido diz quem cotou: `transnorte`.
+ 
+ ## Configuração
+ 
+@@ -17,5 +15,3 @@ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
+ | --- | --- |
+ | `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v2`) |
+ | `TRANSNORTE_API_KEY` | Chave da TransNorte, enviada em `X-Api-Key` |
+-| `ENTREGAJA_URL` | Base da API da EntregaJá (padrão `https://frete.entregaja.example`) |
+-| `ENTREGAJA_TOKEN` | Token da EntregaJá, enviado como `Authorization: Bearer` |
+diff --git a/api/docs/projeto.md b/api/docs/projeto.md
+index 609bf13..3cc7737 100644
+--- a/api/docs/projeto.md
++++ b/api/docs/projeto.md
+@@ -11,5 +11,3 @@
+ # Transportadoras
+ 
+ {{> connector transnorte}}
+-
+-{{> connector entregaja}}
+diff --git a/api/environments/homolog.env.json b/api/environments/homolog.env.json
+index 211f1a4..66ad41e 100644
+--- a/api/environments/homolog.env.json
++++ b/api/environments/homolog.env.json
+@@ -3,9 +3,20 @@
+   "id": "homolog",
+   "name": "Homologação",
+   "variables": {
+-    "LOJA_URL": { "type": "string", "value": "http://127.0.0.1:46805" },
+-    "LOJA_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true, "description": "Chave do canal de venda na homologação" },
+-    "TRANSNORTE_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "ENTREGAJA_TOKEN": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true }
++    "LOJA_URL": {
++      "type": "string",
++      "value": "http://127.0.0.1:46805"
++    },
++    "LOJA_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true,
++      "description": "Chave do canal de venda na homologação"
++    },
++    "TRANSNORTE_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    }
+   }
+ }
+diff --git a/api/environments/producao.env.json b/api/environments/producao.env.json
+index 305b518..02a356a 100644
+--- a/api/environments/producao.env.json
++++ b/api/environments/producao.env.json
+@@ -3,9 +3,19 @@
+   "id": "producao",
+   "name": "Produção",
+   "variables": {
+-    "LOJA_URL": { "type": "string", "value": "https://api.loja.example" },
+-    "LOJA_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "TRANSNORTE_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "ENTREGAJA_TOKEN": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true }
++    "LOJA_URL": {
++      "type": "string",
++      "value": "https://api.loja.example"
++    },
++    "LOJA_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "TRANSNORTE_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    }
+   }
+ }
+diff --git a/api/flows/entregaja/cotarFrete.flow.vvpost.json b/api/flows/entregaja/cotarFrete.flow.vvpost.json
+deleted file mode 100644
+index bb46db1..0000000
+--- a/api/flows/entregaja/cotarFrete.flow.vvpost.json
++++ /dev/null
+@@ -1,52 +0,0 @@
+-{
+-  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+-  "id": "entregaja.cotarFrete",
+-  "name": "Cota o frete para um CEP",
+-  "extends": "entregaja",
+-  "order": 1,
+-  "nodes": [
+-    {
+-      "id": "request",
+-      "name": "Request",
+-      "type": "request",
+-      "request": {
+-        "method": "GET",
+-        "url": "/v1/frete",
+-        "query": {
+-          "cep": "",
+-          "peso": ""
+-        }
+-      }
+-    }
+-  ],
+-  "examples": [
+-    {
+-      "id": "ok-200",
+-      "name": "200 Cotação",
+-      "status": 200,
+-      "headers": {
+-        "Content-Type": "application/json"
+-      },
+-      "body": {
+-        "precoCentavos": 1800,
+-        "prazo": 5
+-      },
+-      "schema": {
+-        "type": "object",
+-        "required": [
+-          "precoCentavos",
+-          "prazo"
+-        ],
+-        "properties": {
+-          "precoCentavos": {
+-            "type": "integer"
+-          },
+-          "prazo": {
+-            "type": "integer",
+-            "description": "Prazo em dias corridos"
+-          }
+-        }
+-      }
+-    }
+-  ]
+-}
+diff --git a/api/flows/entregaja/entregaja.flow.vvpost.json b/api/flows/entregaja/entregaja.flow.vvpost.json
+deleted file mode 100644
+index b129815..0000000
+--- a/api/flows/entregaja/entregaja.flow.vvpost.json
++++ /dev/null
+@@ -1,15 +0,0 @@
+-{
+-  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+-  "id": "entregaja",
+-  "name": "EntregaJá",
+-  "description": "Transportadora reserva da Loja, usada quando a TransNorte não responde.",
+-  "version": "1.0.0",
+-  "defaults": {
+-    "baseUrl": "https://frete.entregaja.example",
+-    "auth": {
+-      "type": "bearer",
+-      "token": "{{ENTREGAJA_TOKEN}}"
+-    }
+-  },
+-  "nodes": []
+-}
+diff --git a/api/flows/loja-api/criarPedido.flow.vvpost.json b/api/flows/loja-api/criarPedido.flow.vvpost.json
+index 04cd3eb..093296f 100644
+--- a/api/flows/loja-api/criarPedido.flow.vvpost.json
++++ b/api/flows/loja-api/criarPedido.flow.vvpost.json
+@@ -2,7 +2,7 @@
+   "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+   "id": "loja-api.criarPedido",
+   "name": "Cria um pedido e cota o frete",
+-  "description": "Soma os itens, cota o frete com a TransNorte e, se ela não responder, com a EntregaJá. Sem nenhuma cotação, devolve 503.",
++  "description": "Soma os itens, cota o frete com a TransNorte. Se ela não responder, devolve 503 FRETE_INDISPONIVEL.",
+   "extends": "loja-api",
+   "order": 3,
+   "nodes": [
+diff --git a/api/schemas/Pedido.schema.json b/api/schemas/Pedido.schema.json
+index 05eb658..f39c6f8 100644
+--- a/api/schemas/Pedido.schema.json
++++ b/api/schemas/Pedido.schema.json
+@@ -8,7 +8,6 @@
+     "subtotalCentavos",
+     "freteCentavos",
+     "totalCentavos",
+-    "transportadora",
+     "criadoEm"
+   ],
+   "properties": {
+@@ -51,8 +50,7 @@
+     "transportadora": {
+       "type": "string",
+       "enum": [
+-        "transnorte",
+-        "entregaja"
++        "transnorte"
+       ]
+     },
+     "criadoEm": {
+diff --git a/src/frete/entregaja.js b/src/frete/entregaja.js
+deleted file mode 100644
+index a1aba7d..0000000
+--- a/src/frete/entregaja.js
++++ /dev/null
+@@ -1,15 +0,0 @@
+-// Cliente da EntregaJá, usada quando a TransNorte não responde. Documentação em openapi/entregaja.yaml.
+-const BASE = process.env.ENTREGAJA_URL ?? 'https://frete.entregaja.example'
+-
+-export function criarEntregaJa({ fetch = globalThis.fetch, token = process.env.ENTREGAJA_TOKEN } = {}) {
+-  return {
+-    nome: 'entregaja',
+-    async cotar({ cepDestino, pesoGramas }) {
+-      const url = `${BASE}/v1/frete?cep=${encodeURIComponent(cepDestino)}&peso=${pesoGramas}`
+-      const res = await fetch(url, { headers: { authorization: `Bearer ${token ?? ''}` } })
+-      if (!res.ok) throw new Error(`EntregaJá respondeu ${res.status}`)
+-      const data = await res.json()
+-      return { valorCentavos: data.precoCentavos, prazoDias: data.prazo, transportadora: 'entregaja' }
+-    }
+-  }
+-}
+diff --git a/src/frete/index.js b/src/frete/index.js
+index c6c9806..43edf03 100644
+--- a/src/frete/index.js
++++ b/src/frete/index.js
+@@ -1,9 +1,8 @@
+ import { criarTransNorte } from './transnorte.js'
+-import { criarEntregaJa } from './entregaja.js'
+ 
+-// Cota com a TransNorte e, se ela falhar, com a EntregaJá.
++// Cota o frete com a TransNorte; se ela falhar, o erro sobe (o pedido é recusado com 503).
+ export function criarFrete({ provedores } = {}) {
+-  const lista = provedores ?? [criarTransNorte(), criarEntregaJa()]
++  const lista = provedores ?? [criarTransNorte()]
+   return {
+     async cotar(pedido) {
+       const falhas = []
+diff --git a/test/frete.test.js b/test/frete.test.js
+index d1cae3d..38889e4 100644
+--- a/test/frete.test.js
++++ b/test/frete.test.js
+@@ -2,7 +2,6 @@ import { test } from 'node:test'
+ import assert from 'node:assert/strict'
+ import { criarFrete } from '../src/frete/index.js'
+ import { criarTransNorte } from '../src/frete/transnorte.js'
+-import { criarEntregaJa } from '../src/frete/entregaja.js'
+ import { fetchFalso } from './apoio.js'
+ 
+ test('TransNorte cota em reais e converte para centavos', async () => {
+@@ -14,18 +13,9 @@ test('TransNorte cota em reais e converte para centavos', async () => {
+   assert.equal(fetch.chamadas[0].init.headers['x-api-key'], 'k')
+ })
+ 
+-test('EntregaJá cota por query string', async () => {
+-  const fetch = fetchFalso({ precoCentavos: 1800, prazo: 5 })
+-  const r = await criarEntregaJa({ fetch, token: 't' }).cotar({ cepDestino: '01310100', pesoGramas: 700 })
+-  assert.deepEqual(r, { valorCentavos: 1800, prazoDias: 5, transportadora: 'entregaja' })
+-  assert.match(fetch.chamadas[0].url, /\/v1\/frete\?cep=01310100&peso=700$/)
+-})
+-
+-test('frete usa a EntregaJá quando a TransNorte falha', async () => {
++test('frete falha quando a TransNorte falha', async () => {
+   const falha = { nome: 'transnorte', cotar: async () => { throw new Error('timeout') } }
+-  const ok = { nome: 'entregaja', cotar: async () => ({ valorCentavos: 1000, prazoDias: 6, transportadora: 'entregaja' }) }
+-  const r = await criarFrete({ provedores: [falha, ok] }).cotar({ cepDestino: '01310100', pesoGramas: 100 })
+-  assert.equal(r.transportadora, 'entregaja')
++  await assert.rejects(criarFrete({ provedores: [falha] }).cotar({}), /transnorte: timeout/)
+ })
+ 
+ test('frete falha com a lista de erros quando todas falham', async () => {

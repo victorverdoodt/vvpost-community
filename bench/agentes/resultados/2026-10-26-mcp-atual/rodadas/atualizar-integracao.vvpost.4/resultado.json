@@ -1,0 +1,145 @@
+{
+  "rodada": "atualizar-integracao.vvpost.4",
+  "tarefa": "atualizar-integracao",
+  "variante": "vvpost",
+  "n": 4,
+  "inicio": "2026-10-26T13:25:25.561Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 13,
+  "passos": 12,
+  "passosMcp": 2,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 4,
+    "ToolSearch": 1,
+    "mcp__vvpost__find_references": 1,
+    "mcp__vvpost__edit_project": 1,
+    "Edit": 5
+  },
+  "tokens": {
+    "entrada": 12,
+    "escritaCache": 20747,
+    "leituraCache": 149235,
+    "saida": 3345,
+    "total": 173339
+  },
+  "custoUsd": 0.1313855,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1313855
+  },
+  "duracaoMs": 36657,
+  "terminou": true,
+  "homolog": {
+    "porta": 35709,
+    "chave": "hk-204e4ba144b2e816ee46c3da",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Atualizei o cliente da TransNorte para a v3 e a documentação. Os 11 testes passam.\n\n- **Código:** em `src/frete/transnorte.js` a base padrão agora é `https://api.transnorte.example/v3`. Toda chamada envia o header `X-Cliente-Id`, lido de `TRANSNORTE_CLIENTE_ID`.\n- **Testes:** em `test/frete.test.js` o teste da TransNorte agora confere a URL com `/v3/` e o header `x-cliente-id`.\n- **VVPost:**\n  - A base do conector `transnorte` virou v3, a versão do conector foi para 3.0.0 e ele ganhou o header `X-Cliente-Id`.\n  - A variável `TRANSNORTE_CLIENTE_ID` entrou nos ambientes `homolog` e `producao`.\n  - A tabela de variáveis de `docs/frete.md` ficou atualizada.\n  - A resposta de escrita não trouxe `stalePdf`, então não exportei o PDF.\n\nPendências suas:\n- **Valor real do id:** as duas variáveis ficaram com o placeholder `__REQUIRED__`, porque não tenho o id do cliente. Preencha o valor real em cada ambiente.\n- **Segredo ou não:** marquei `TRANSNORTE_CLIENTE_ID` como variável comum, não secreta. Se preferir tratá-la como segredo, é só mudar.\n- **Sem commit:** as alterações estão no working tree, sem commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+sequenceDiagram
+  autonumber
+  participant App
+  participant Auth as Identidade
+  participant Pay as Payments v1
+  App->>Auth: POST /oauth/token
+  Auth-->>App: access_token
+  App->>Pay: POST /payments/v1/charges
+  Pay-->>App: 201 approved
+  App->>Pay: GET /payments/v1/charges/{id}
+  Pay-->>App: 200 status

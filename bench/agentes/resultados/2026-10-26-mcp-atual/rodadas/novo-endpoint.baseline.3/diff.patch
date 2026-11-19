@@ -1,0 +1,347 @@
+diff --git a/README.md b/README.md
+index 35a1320..6fa74b4 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # Loja API
+ 
+-API de pedidos da Loja: produtos, pedidos, cancelamento e cotação de frete com as transportadoras
++API de pedidos da Loja: produtos, pedidos, cancelamento, rastreio e cotação de frete com as transportadoras
+ parceiras (TransNorte e, como reserva, EntregaJá).
+ 
+ ```bash
+diff --git a/docs/arquitetura.md b/docs/arquitetura.md
+index e28c6d1..4c003ef 100644
+--- a/docs/arquitetura.md
++++ b/docs/arquitetura.md
+@@ -1,18 +1,19 @@
+ # Arquitetura
+ 
+ A Loja API recebe os pedidos do site e do app, guarda os pedidos e cota o frete com as
+-transportadoras parceiras. A TransNorte é a transportadora principal; a EntregaJá é a reserva,
++transportadoras parceiras. O rastreio é consultado só na TransNorte. A TransNorte é a transportadora principal; a EntregaJá é a reserva,
+ chamada só quando a TransNorte não responde.
+ 
+ ```mermaid
+ C4Context
+   title Contexto da Loja API
+   Person(cliente, "Cliente", "Compra pelo site ou pelo app")
+-  System(loja, "Loja API", "Pedidos e frete")
++  System(loja, "Loja API", "Pedidos, frete e rastreio")
+   System_Ext(transnorte, "TransNorte", "Cotação de frete e rastreio")
+   System_Ext(entregaja, "EntregaJá", "Cotação de frete (reserva)")
+   Rel(cliente, loja, "Faz pedidos", "HTTPS")
+   Rel(loja, transnorte, "Cota o frete", "HTTPS")
++  Rel(loja, transnorte, "Consulta o rastreio", "HTTPS")
+   Rel(loja, entregaja, "Cota o frete se a TransNorte falhar", "HTTPS")
+ ```
+ 
+@@ -21,8 +22,8 @@ C4Context
+ | Componente | Arquivo | Papel |
+ | --- | --- | --- |
+ | Rotas | `src/app.js` | Traduz método e caminho para as operações de pedidos |
+-| Pedidos | `src/pedidos.js` | Valida, soma os itens, cota o frete e guarda o pedido |
++| Pedidos | `src/pedidos.js` | Valida, soma os itens, cota o frete e guarda o pedido e consulta o rastreio |
+ | Frete | `src/frete/index.js` | Tenta as transportadoras em ordem: TransNorte, depois EntregaJá |
+-| Cliente TransNorte | `src/frete/transnorte.js` | `POST /cotacoes`, com `X-Api-Key` |
++| Cliente TransNorte | `src/frete/transnorte.js` | `POST /cotacoes` e `GET /rastreamentos/{codigo}`, com `X-Api-Key` |
+ | Cliente EntregaJá | `src/frete/entregaja.js` | `GET /v1/frete`, com token Bearer |
+ | Catálogo | `src/produtos.js` | Produtos, preços e pesos |
+diff --git a/docs/frete.md b/docs/frete.md
+index 4353f85..8a8f737 100644
+--- a/docs/frete.md
++++ b/docs/frete.md
+@@ -11,6 +11,16 @@ O frete é cotado na criação do pedido, pelo peso somado dos itens e pelo CEP
+ 
+ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
+ 
++## Rastreio
++
++`GET /pedidos/{id}/rastreio` consulta a **TransNorte** (`GET /rastreamentos/{codigo}`) usando o id
++do pedido como código e devolve a resposta dela: `{ codigo, eventos: [{ quando, descricao, cidade }] }`.
++A EntregaJá não é consultada no rastreio.
++
++- Pedido que não existe: `404 PEDIDO_NAO_ENCONTRADO` (a TransNorte não é chamada).
++- Código que a TransNorte não conhece (404 dela): `404 RASTREIO_NAO_ENCONTRADO`.
++- Outra falha da TransNorte (erro HTTP ou rede): `503 RASTREIO_INDISPONIVEL`.
++
+ ## Configuração
+ 
+ | Variável | Uso |
+diff --git a/docs/guia-de-integracao.md b/docs/guia-de-integracao.md
+index 7b30140..e1d9a1a 100644
+--- a/docs/guia-de-integracao.md
++++ b/docs/guia-de-integracao.md
+@@ -40,6 +40,22 @@ Erros: `400 ITENS_OBRIGATORIOS` ou `400 CEP_INVALIDO`, `422 PRODUTO_INEXISTENTE`
+ `POST /pedidos/{id}/cancelamento` cancela um pedido que ainda não foi enviado (`409
+ PEDIDO_JA_ENVIADO` se já foi), com um `motivo` opcional.
+ 
++## Rastrear a entrega
++
++`GET /pedidos/{id}/rastreio` devolve os eventos de rastreio da TransNorte para o pedido.
++
++```json
++{
++  "codigo": "ped-1001",
++  "eventos": [
++    { "quando": "2026-03-02T09:00:00Z", "descricao": "Objeto postado", "cidade": "São Paulo" }
++  ]
++}
++```
++
++Erros: `404 PEDIDO_NAO_ENCONTRADO`, `404 RASTREIO_NAO_ENCONTRADO` (a TransNorte não conhece o
++código) e `503 RASTREIO_INDISPONIVEL` (a TransNorte falhou).
++
+ ## Endpoints
+ 
+ | Método | Caminho | O que faz |
+@@ -48,4 +64,5 @@ PEDIDO_JA_ENVIADO` se já foi), com um `motivo` opcional.
+ | GET | `/pedidos` | Lista os pedidos, com filtro `status` |
+ | POST | `/pedidos` | Cria um pedido e cota o frete |
+ | GET | `/pedidos/{id}` | Um pedido |
++| GET | `/pedidos/{id}/rastreio` | Eventos de rastreio do pedido |
+ | POST | `/pedidos/{id}/cancelamento` | Cancela um pedido |
+diff --git a/openapi/loja.yaml b/openapi/loja.yaml
+index f3eb775..26f32eb 100644
+--- a/openapi/loja.yaml
++++ b/openapi/loja.yaml
+@@ -2,7 +2,7 @@ openapi: 3.1.0
+ info:
+   title: Loja API
+   version: 1.3.0
+-  description: API de pedidos da Loja. Calcula o frete com as transportadoras parceiras.
++  description: API de pedidos da Loja. Calcula o frete e consulta o rastreio com as transportadoras parceiras.
+ servers:
+   - url: https://api.loja.example
+     description: Produção
+@@ -110,6 +110,40 @@ paths:
+                 $ref: '#/components/schemas/Pedido'
+         '404':
+           $ref: '#/components/responses/Erro'
++  /pedidos/{id}/rastreio:
++    get:
++      operationId: rastrearPedido
++      summary: Eventos de rastreio do pedido
++      description: >-
++        Consulta a TransNorte (GET /rastreamentos/{codigo}) com o id do pedido como código e
++        devolve a resposta dela.
++      parameters:
++        - $ref: '#/components/parameters/IdPedido'
++      responses:
++        '200':
++          description: Rastreio
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/schemas/Rastreio'
++              example:
++                codigo: ped-1001
++                eventos:
++                  - quando: '2026-03-02T09:00:00Z'
++                    descricao: Objeto postado
++                    cidade: São Paulo
++        '404':
++          description: PEDIDO_NAO_ENCONTRADO (pedido inexistente) ou RASTREIO_NAO_ENCONTRADO (a TransNorte não conhece o código)
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/schemas/Erro'
++        '503':
++          description: RASTREIO_INDISPONIVEL (a TransNorte falhou)
++          content:
++            application/json:
++              schema:
++                $ref: '#/components/schemas/Erro'
+   /pedidos/{id}/cancelamento:
+     post:
+       operationId: cancelarPedido
+@@ -210,6 +244,20 @@ components:
+           enum: [transnorte, entregaja]
+         criadoEm: { type: string, format: date-time }
+         motivoCancelamento: { type: [string, 'null'] }
++    Rastreio:
++      type: object
++      required: [codigo, eventos]
++      properties:
++        codigo: { type: string }
++        eventos:
++          type: array
++          items:
++            type: object
++            required: [quando, descricao]
++            properties:
++              quando: { type: string, format: date-time }
++              descricao: { type: string }
++              cidade: { type: string }
+     Erro:
+       type: object
+       required: [erro]
+diff --git a/openapi/transnorte.yaml b/openapi/transnorte.yaml
+index db72be2..5bc6cef 100644
+--- a/openapi/transnorte.yaml
++++ b/openapi/transnorte.yaml
+@@ -2,7 +2,7 @@ openapi: 3.1.0
+ info:
+   title: TransNorte
+   version: '2.0'
+-  description: Transportadora principal da Loja. A Loja usa a cotação de frete; as outras rotas ficam para o painel de logística.
++  description: Transportadora principal da Loja. A Loja usa a cotação de frete e o rastreio; as outras rotas ficam para o painel de logística.
+ servers:
+   - url: https://api.transnorte.example/v2
+ paths:
+diff --git a/src/app.js b/src/app.js
+index eeaeb47..9c14b55 100644
+--- a/src/app.js
++++ b/src/app.js
+@@ -1,18 +1,20 @@
+ import { listarProdutos } from './produtos.js'
+ import { criarPedidos } from './pedidos.js'
+ import { criarFrete } from './frete/index.js'
++import { criarTransNorte } from './frete/transnorte.js'
+ import { ErroApi, corpoDeErro } from './erros.js'
+ 
+ // Rotas da API. handle() recebe método, caminho e corpo já lido, e devolve { status, body }:
+ // o server.js só traduz isso para HTTP, e os testes chamam handle() direto.
+-export function criarApp({ frete = criarFrete(), agora } = {}) {
+-  const pedidos = criarPedidos({ frete, agora })
++export function criarApp({ frete = criarFrete(), rastreio = criarTransNorte(), agora } = {}) {
++  const pedidos = criarPedidos({ frete, rastreio, agora })
+ 
+   const rotas = [
+     ['GET', /^\/produtos$/, () => ({ status: 200, body: { produtos: listarProdutos() } })],
+     ['GET', /^\/pedidos$/, (_m, _b, q) => ({ status: 200, body: { pedidos: pedidos.listar({ status: q.get('status') ?? undefined }) } })],
+     ['POST', /^\/pedidos$/, async (_m, b) => ({ status: 201, body: await pedidos.criar(b) })],
+     ['GET', /^\/pedidos\/([\w-]+)$/, (m) => ({ status: 200, body: pedidos.obter(m[1]) })],
++    ['GET', /^\/pedidos\/([\w-]+)\/rastreio$/, async (m) => ({ status: 200, body: await pedidos.rastrear(m[1]) })],
+     ['POST', /^\/pedidos\/([\w-]+)\/cancelamento$/, (m, b) => ({ status: 200, body: pedidos.cancelar(m[1], b?.motivo) })]
+   ]
+ 
+diff --git a/src/frete/transnorte.js b/src/frete/transnorte.js
+index 7be3a23..637f33f 100644
+--- a/src/frete/transnorte.js
++++ b/src/frete/transnorte.js
+@@ -1,4 +1,4 @@
+-// Cliente da TransNorte (cotação de frete). Documentação da API em openapi/transnorte.yaml.
++// Cliente da TransNorte (cotação de frete e rastreio). Documentação da API em openapi/transnorte.yaml.
+ const BASE = process.env.TRANSNORTE_URL ?? 'https://api.transnorte.example/v2'
+ 
+ export function criarTransNorte({ fetch = globalThis.fetch, apiKey = process.env.TRANSNORTE_API_KEY } = {}) {
+@@ -13,6 +13,15 @@ export function criarTransNorte({ fetch = globalThis.fetch, apiKey = process.env
+       if (!res.ok) throw new Error(`TransNorte respondeu ${res.status}`)
+       const data = await res.json()
+       return { valorCentavos: Math.round(data.valor * 100), prazoDias: data.prazoDiasUteis, transportadora: 'transnorte' }
++    },
++    // Devolve { codigo, eventos } como a TransNorte responde, ou null se ela não conhece o código (404).
++    async rastrear(codigo) {
++      const res = await fetch(`${BASE}/rastreamentos/${encodeURIComponent(codigo)}`, {
++        headers: { 'x-api-key': apiKey ?? '' }
++      })
++      if (res.status === 404) return null
++      if (!res.ok) throw new Error(`TransNorte respondeu ${res.status}`)
++      return res.json()
+     }
+   }
+ }
+diff --git a/src/pedidos.js b/src/pedidos.js
+index 5fa4990..dae74c9 100644
+--- a/src/pedidos.js
++++ b/src/pedidos.js
+@@ -3,7 +3,7 @@ import { ErroApi } from './erros.js'
+ 
+ const CEP = /^\d{5}-?\d{3}$/
+ 
+-export function criarPedidos({ frete, agora = () => new Date() }) {
++export function criarPedidos({ frete, rastreio, agora = () => new Date() }) {
+   const pedidos = new Map()
+   let seq = 1000
+ 
+@@ -58,6 +58,18 @@ export function criarPedidos({ frete, agora = () => new Date() }) {
+       return p
+     },
+ 
++    async rastrear(id) {
++      this.obter(id)
++      let resultado
++      try {
++        resultado = await rastreio.rastrear(id)
++      } catch (e) {
++        throw new ErroApi(503, 'RASTREIO_INDISPONIVEL', e.message)
++      }
++      if (!resultado) throw new ErroApi(404, 'RASTREIO_NAO_ENCONTRADO', `A TransNorte não conhece o código ${id}`)
++      return resultado
++    },
++
+     cancelar(id, motivo) {
+       const p = this.obter(id)
+       if (p.status === 'enviado') throw new ErroApi(409, 'PEDIDO_JA_ENVIADO', 'Pedido já enviado não pode ser cancelado')
+diff --git a/test/frete.test.js b/test/frete.test.js
+index d1cae3d..e3bca24 100644
+--- a/test/frete.test.js
++++ b/test/frete.test.js
+@@ -32,3 +32,17 @@ test('frete falha com a lista de erros quando todas falham', async () => {
+   const falha = (nome) => ({ nome, cotar: async () => { throw new Error('fora') } })
+   await assert.rejects(criarFrete({ provedores: [falha('a'), falha('b')] }).cotar({}), /a: fora; b: fora/)
+ })
++
++test('TransNorte rastreia pelo código e devolve a resposta dela', async () => {
++  const resposta = { codigo: 'ped-1001', eventos: [{ quando: '2026-03-02T09:00:00Z', descricao: 'Objeto postado', cidade: 'São Paulo' }] }
++  const fetch = fetchFalso(resposta)
++  const r = await criarTransNorte({ fetch, apiKey: 'k' }).rastrear('ped-1001')
++  assert.deepEqual(r, resposta)
++  assert.match(fetch.chamadas[0].url, /\/rastreamentos\/ped-1001$/)
++  assert.equal(fetch.chamadas[0].init.headers['x-api-key'], 'k')
++})
++
++test('TransNorte rastrear devolve null no 404 e falha nos demais erros', async () => {
++  assert.equal(await criarTransNorte({ fetch: fetchFalso({}, { status: 404 }) }).rastrear('x'), null)
++  await assert.rejects(criarTransNorte({ fetch: fetchFalso({}, { status: 500 }) }).rastrear('x'), /TransNorte respondeu 500/)
++})
+diff --git a/test/pedidos.test.js b/test/pedidos.test.js
+index e4c732c..d3affff 100644
+--- a/test/pedidos.test.js
++++ b/test/pedidos.test.js
+@@ -57,3 +57,44 @@ test('POST /pedidos devolve 503 quando nenhuma transportadora cota', async () =>
+   assert.equal(r.status, 503)
+   assert.equal(r.body.erro.codigo, 'FRETE_INDISPONIVEL')
+ })
++
++const rastreioFalso = (fn) => ({ rastrear: fn })
++const novoPedido = (app) => app.handle('POST', '/pedidos', { itens: [{ produtoId: 'p-100' }], cep: '01310100' })
++
++test('GET /pedidos/{id}/rastreio devolve os eventos da TransNorte com o id como código', async () => {
++  const chamadas = []
++  const resposta = { codigo: 'ped-1001', eventos: [{ quando: '2026-03-02T09:00:00Z', descricao: 'Objeto postado', cidade: 'São Paulo' }] }
++  const rastreio = rastreioFalso(async (codigo) => { chamadas.push(codigo); return resposta })
++  const app = criarApp({ frete: freteFixo(), rastreio, agora: agoraFixo })
++  const p = await novoPedido(app)
++  const r = await app.handle('GET', `/pedidos/${p.body.id}/rastreio`)
++  assert.equal(r.status, 200)
++  assert.deepEqual(r.body, resposta)
++  assert.deepEqual(chamadas, [p.body.id])
++})
++
++test('GET /pedidos/{id}/rastreio devolve 404 PEDIDO_NAO_ENCONTRADO sem consultar a TransNorte', async () => {
++  let chamou = false
++  const rastreio = rastreioFalso(async () => { chamou = true })
++  const r = await criarApp({ frete: freteFixo(), rastreio }).handle('GET', '/pedidos/ped-1/rastreio')
++  assert.equal(r.status, 404)
++  assert.equal(r.body.erro.codigo, 'PEDIDO_NAO_ENCONTRADO')
++  assert.equal(chamou, false)
++})
++
++test('GET /pedidos/{id}/rastreio devolve 404 RASTREIO_NAO_ENCONTRADO quando a TransNorte não conhece o código', async () => {
++  const app = criarApp({ frete: freteFixo(), rastreio: rastreioFalso(async () => null), agora: agoraFixo })
++  const p = await novoPedido(app)
++  const r = await app.handle('GET', `/pedidos/${p.body.id}/rastreio`)
++  assert.equal(r.status, 404)
++  assert.equal(r.body.erro.codigo, 'RASTREIO_NAO_ENCONTRADO')
++})
++
++test('GET /pedidos/{id}/rastreio devolve 503 RASTREIO_INDISPONIVEL quando a TransNorte falha', async () => {
++  const rastreio = rastreioFalso(async () => { throw new Error('TransNorte respondeu 500') })
++  const app = criarApp({ frete: freteFixo(), rastreio, agora: agoraFixo })
++  const p = await novoPedido(app)
++  const r = await app.handle('GET', `/pedidos/${p.body.id}/rastreio`)
++  assert.equal(r.status, 503)
++  assert.equal(r.body.erro.codigo, 'RASTREIO_INDISPONIVEL')
++})

@@ -1,0 +1,149 @@
+{
+  "rodada": "novo-endpoint.vvpost.5",
+  "tarefa": "novo-endpoint",
+  "variante": "vvpost",
+  "n": 5,
+  "inicio": "2026-10-26T13:26:21.670Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 23,
+  "passos": 22,
+  "passosMcp": 4,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 8,
+    "ToolSearch": 1,
+    "mcp__vvpost__get_api_catalog": 1,
+    "mcp__vvpost__get_source": 2,
+    "Edit": 6,
+    "Read": 3,
+    "mcp__vvpost__edit_project": 1
+  },
+  "tokens": {
+    "entrada": 24,
+    "escritaCache": 33781,
+    "leituraCache": 400098,
+    "saida": 10375,
+    "total": 444278
+  },
+  "custoUsd": 0.2789318,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.2789318
+  },
+  "duracaoMs": 78945,
+  "terminou": true,
+  "homolog": {
+    "porta": 32785,
+    "chave": "hk-bcd8c0d6a9dc8fd61aa8aa9f",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O `GET /pedidos/{id}/rastreio` está implementado, testado e documentado. Os 16 testes passam. Não chamei a TransNorte de verdade: os testes usam um cliente falso, e a documentação foi gravada no VVPost sem erros. A resposta de escrita não trouxe `stalePdf`, então não exportei o PDF.\n\n**Código**\n- `src/frete/transnorte.js` ganhou `rastrear(codigo)`. Ele chama `GET /rastreamentos/{codigo}`, devolve `null` se a TransNorte responder 404 e lança erro nas outras falhas.\n- `src/app.js` tem a rota nova, e `criarApp` aceita `rastreio`, que por padrão é a TransNorte. A rota procura o pedido primeiro; se ele não existir, responde 404 `PEDIDO_NAO_ENCONTRADO` sem chamar a TransNorte. Depois consulta a TransNorte com o id do pedido como código. Se ela não conhece o código, responde 404 `RASTREIO_NAO_ENCONTRADO`. Caso contrário, devolve o corpo dela como veio.\n- Você não pediu, mas acrescentei 503 `RASTREIO_INDISPONIVEL` para quando a TransNorte falha por outro motivo. Sem isso, o erro viraria um 500 sem corpo padronizado.\n\n**Testes**\n- `test/pedidos.test.js` cobre quatro casos: sucesso, pedido inexistente, rastreio desconhecido e falha da TransNorte.\n- `test/frete.test.js` cobre o cliente: a URL chamada, o `null` no 404 e o erro em outras falhas.\n\n**Documentação (VVPost)**\n- Criei o endpoint `loja-api/rastrearPedido` no catálogo, com exemplos de 200, 404 e 503.\n- O guia de integração ganhou a seção \"Rastrear a entrega\".\n- Na arquitetura, atualizei o diagrama e a linha do componente da TransNorte.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "rodada": "consultar-api.vvpost.3",
+  "tarefa": "consultar-api",
+  "variante": "vvpost",
+  "n": 3,
+  "inicio": "2026-10-26T13:22:51.236Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 5,
+  "passos": 4,
+  "passosMcp": 3,
+  "errosDeFerramenta": 0,
+  "ferramentasComErro": [],
+  "negadas": [],
+  "porFerramenta": {
+    "ToolSearch": 1,
+    "mcp__vvpost__get_api_catalog": 2,
+    "mcp__vvpost__execute_dry_run": 1
+  },
+  "tokens": {
+    "entrada": 10,
+    "escritaCache": 11021,
+    "leituraCache": 91997,
+    "saida": 759,
+    "total": 103787
+  },
+  "custoUsd": 0.0608937,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.0608937
+  },
+  "duracaoMs": 10215,
+  "terminou": true,
+  "homolog": {
+    "porta": 42089,
+    "chave": "hk-94a21a54d80a41ec02ba6a5e",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Na homologação há **4 pedidos** cancelados com o motivo \"endereço errado\". Eles somam **R$ 893,98**, que são 89.398 centavos em `totalCentavos`.\n\n| Pedido | `totalCentavos` |\n|---|---|\n| ped-1003 | 25.086 |\n| ped-1007 | 9.022 |\n| ped-1012 | 28.200 |\n| ped-1014 | 27.090 |\n\nConsultei `GET /pedidos?status=cancelado` no ambiente `homolog`. A resposta trouxe 5 pedidos cancelados e não indicou paginação. O quinto, ped-1005, foi cancelado por \"desistiu\", e outros dois por motivos diferentes (\"pagamento recusado\" e outro), então ficaram de fora. Não alterei nada no repositório.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "resposta": {
+        "ok": true,
+        "falhas": []
+      },
+      "intacto": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

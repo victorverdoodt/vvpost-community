@@ -1,0 +1,46 @@
+{
+  "swagger": "2.0",
+  "info": { "title": "Petstore Legado", "version": "1.0.0" },
+  "host": "legacy.pets.example.com",
+  "basePath": "/api/",
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "securityDefinitions": {
+    "key": { "type": "apiKey", "name": "X-Api-Key", "in": "header" }
+  },
+  "security": [{ "key": [] }],
+  "paths": {
+    "/pets": {
+      "post": {
+        "operationId": "addPet",
+        "parameters": [
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/Pet" } },
+          { "name": "dryRun", "in": "query", "type": "boolean", "default": false }
+        ],
+        "responses": { "200": { "description": "ok" } }
+      }
+    },
+    "/pets/{id}/photo": {
+      "post": {
+        "operationId": "photo",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "name": "file", "in": "formData", "type": "file" }
+        ],
+        "responses": { "200": { "description": "ok" } }
+      }
+    }
+  },
+  "definitions": {
+    "Pet": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "age": { "type": "integer", "minimum": 0 },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

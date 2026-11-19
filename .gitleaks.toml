@@ -1,0 +1,16 @@
+# Configuração do gitleaks (e de scanners compatíveis) para o VVPost.
+# Os testes e os scripts de e2e usam credenciais falsas de propósito, para provar que o VVPost
+# não as deixa vazar (test/secret-leaks.test.ts, guarda de commit, importadores). Nenhuma delas
+# é real. Uma credencial fora destes caminhos continua sendo apontada.
+title = "VVPost"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Credenciais falsas dos testes e dos cenários de e2e"
+paths = [
+  '''^test/''',
+  '''^packages/[^/]+/test/''',
+  '''^scripts/e2e-[^/]+\.mjs$''',
+]

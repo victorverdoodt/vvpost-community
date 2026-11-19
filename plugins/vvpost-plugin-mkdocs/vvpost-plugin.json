@@ -1,0 +1,20 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/plugin.json",
+  "id": "vvpost-plugin-mkdocs",
+  "name": "MkDocs e Backstage TechDocs",
+  "version": "1.0.0",
+  "description": "Exporta a documentação como um projeto MkDocs (mkdocs.yml e docs/*.md), o formato que o Backstage TechDocs gera. Com site.backstage, o mkdocs.yml já usa o techdocs-core.",
+  "author": "VVPost",
+  "homepage": "https://github.com/victorverdoodt/vvpost-community/blob/main/docs/publish.md#mkdocs-e-backstage-techdocs",
+  "main": "index.js",
+  "apiVersion": 1,
+  "contributes": {
+    "exporters": [
+      {
+        "id": "mkdocs",
+        "title": "MkDocs (Backstage TechDocs)",
+        "description": "mkdocs.yml com a navegação da estrutura e uma página Markdown por página, com os diagramas e as imagens em docs/assets."
+      }
+    ]
+  }
+}

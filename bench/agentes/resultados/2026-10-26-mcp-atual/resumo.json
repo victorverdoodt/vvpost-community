@@ -1,0 +1,1255 @@
+{
+  "geradoEm": "2026-10-26T13:30:35.815Z",
+  "modelo": "claude-sonnet-5-5",
+  "claudeCode": "2.1.310",
+  "tarefas": {
+    "alterar-endpoint": {
+      "baseline": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 11.833333333333334,
+          "dp": 7.57407860182786,
+          "mediana": 11.5,
+          "min": 4,
+          "max": 25
+        },
+        "turnos": {
+          "media": 12.833333333333334,
+          "dp": 7.57407860182786,
+          "mediana": 12.5,
+          "min": 5,
+          "max": 26
+        },
+        "tokens": {
+          "media": 199184.5,
+          "dp": 73390.63234160065,
+          "mediana": 183522.5,
+          "min": 111947,
+          "max": 319080
+        },
+        "tokensSaida": {
+          "media": 4900,
+          "dp": 2092.5270846514745,
+          "mediana": 4593,
+          "min": 2120,
+          "max": 8177
+        },
+        "custoUsd": {
+          "media": 0.14776085000000003,
+          "dp": 0.04393504943002797,
+          "mediana": 0.13974160000000002,
+          "min": 0.0873477,
+          "max": 0.21507430000000005
+        },
+        "duracaoS": {
+          "media": 43.972,
+          "dp": 22.655913117771266,
+          "mediana": 40.822500000000005,
+          "min": 16.958,
+          "max": 85.757
+        },
+        "errosDeFerramenta": {
+          "media": 0.16666666666666666,
+          "dp": 0.408248290463863,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "negadas": {
+          "media": 1.6666666666666667,
+          "dp": 1.2110601416389968,
+          "mediana": 1.5,
+          "min": 0,
+          "max": 3
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 11.666666666666666,
+          "dp": 4.802776974487434,
+          "mediana": 10.5,
+          "min": 7,
+          "max": 18
+        },
+        "turnos": {
+          "media": 12.666666666666666,
+          "dp": 4.802776974487434,
+          "mediana": 11.5,
+          "min": 8,
+          "max": 19
+        },
+        "tokens": {
+          "media": 249688.33333333334,
+          "dp": 85664.38442589,
+          "mediana": 227187,
+          "min": 178048,
+          "max": 404552
+        },
+        "tokensSaida": {
+          "media": 3194.3333333333335,
+          "dp": 689.8378553447664,
+          "mediana": 3156,
+          "min": 2451,
+          "max": 4166
+        },
+        "custoUsd": {
+          "media": 0.15845606666666665,
+          "dp": 0.022335732571972352,
+          "mediana": 0.15348469999999997,
+          "min": 0.134548,
+          "max": 0.18989119999999998
+        },
+        "duracaoS": {
+          "media": 33.69416666666667,
+          "dp": 15.550319693391087,
+          "mediana": 26.813000000000002,
+          "min": 18.939,
+          "max": 55.486
+        },
+        "errosDeFerramenta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "negadas": {
+          "media": 0.8333333333333334,
+          "dp": 2.0412414523193148,
+          "mediana": 0,
+          "min": 0,
+          "max": 5
+        },
+        "passosMcp": {
+          "media": 2.6666666666666665,
+          "dp": 1.211060141638997,
+          "mediana": 2,
+          "min": 2,
+          "max": 5
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -1.4084507042253613,
+          "ic95": [
+            -6.999999999999998,
+            6.166666666666667
+          ],
+          "significativo": false
+        },
+        "turnos": {
+          "diferencaPct": -1.2987012987013102,
+          "ic95": [
+            -6.999999999999998,
+            6.166666666666666
+          ],
+          "significativo": false
+        },
+        "tokens": {
+          "diferencaPct": 25.355302914299727,
+          "ic95": [
+            -29974.666666666686,
+            139979.6666666667
+          ],
+          "significativo": false
+        },
+        "custoUsd": {
+          "diferencaPct": 7.238193788589209,
+          "ic95": [
+            -0.02566873333333336,
+            0.046318916666666654
+          ],
+          "significativo": false
+        },
+        "duracaoS": {
+          "diferencaPct": -23.373586221534914,
+          "ic95": [
+            -31.142333333333347,
+            8.954333333333324
+          ],
+          "significativo": false
+        }
+      }
+    },
+    "remover-dependencia": {
+      "baseline": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 28,
+          "dp": 5.830951894845301,
+          "mediana": 28,
+          "min": 22,
+          "max": 37
+        },
+        "turnos": {
+          "media": 29,
+          "dp": 5.830951894845301,
+          "mediana": 29,
+          "min": 23,
+          "max": 38
+        },
+        "tokens": {
+          "media": 314597.6666666667,
+          "dp": 127976.58327001336,
+          "mediana": 314350,
+          "min": 178629,
+          "max": 516803
+        },
+        "tokensSaida": {
+          "media": 9691.666666666666,
+          "dp": 2702.6540042459496,
+          "mediana": 9521,
+          "min": 6806,
+          "max": 13823
+        },
+        "custoUsd": {
+          "media": 0.22258568333333337,
+          "dp": 0.057783258904268005,
+          "mediana": 0.22158695,
+          "min": 0.1601099,
+          "max": 0.3145159
+        },
+        "duracaoS": {
+          "media": 75.89216666666667,
+          "dp": 20.862196379256584,
+          "mediana": 74.17850000000001,
+          "min": 49.79,
+          "max": 101.314
+        },
+        "errosDeFerramenta": {
+          "media": 0.16666666666666666,
+          "dp": 0.408248290463863,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "negadas": {
+          "media": 2.6666666666666665,
+          "dp": 1.632993161855452,
+          "mediana": 2.5,
+          "min": 1,
+          "max": 5
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 19.333333333333332,
+          "dp": 2.4221202832779936,
+          "mediana": 19,
+          "min": 16,
+          "max": 23
+        },
+        "turnos": {
+          "media": 20.333333333333332,
+          "dp": 2.4221202832779936,
+          "mediana": 20,
+          "min": 17,
+          "max": 24
+        },
+        "tokens": {
+          "media": 317212,
+          "dp": 59035.69146202999,
+          "mediana": 321314.5,
+          "min": 226428,
+          "max": 386391
+        },
+        "tokensSaida": {
+          "media": 6689.333333333333,
+          "dp": 863.9649684256108,
+          "mediana": 6498.5,
+          "min": 5813,
+          "max": 8012
+        },
+        "custoUsd": {
+          "media": 0.20478903333333334,
+          "dp": 0.020722736199997,
+          "mediana": 0.20212765,
+          "min": 0.1838528,
+          "max": 0.24070929999999996
+        },
+        "duracaoS": {
+          "media": 52.733500000000014,
+          "dp": 9.927726058871691,
+          "mediana": 54.3945,
+          "min": 36.446,
+          "max": 65.01
+        },
+        "errosDeFerramenta": {
+          "media": 0.16666666666666666,
+          "dp": 0.408248290463863,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "negadas": {
+          "media": 1.5,
+          "dp": 1.0488088481701516,
+          "mediana": 1.5,
+          "min": 0,
+          "max": 3
+        },
+        "passosMcp": {
+          "media": 3.5,
+          "dp": 1.378404875209022,
+          "mediana": 3,
+          "min": 2,
+          "max": 6
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -30.952380952380953,
+          "ic95": [
+            -13.333333333333336,
+            -4
+          ],
+          "significativo": true
+        },
+        "turnos": {
+          "diferencaPct": -29.885057471264375,
+          "ic95": [
+            -13.333333333333336,
+            -4
+          ],
+          "significativo": true
+        },
+        "tokens": {
+          "diferencaPct": 0.8310084944473939,
+          "ic95": [
+            -103591.33333333331,
+            104691.66666666666
+          ],
+          "significativo": false
+        },
+        "custoUsd": {
+          "diferencaPct": -7.995415398459671,
+          "ic95": [
+            -0.06354948333333335,
+            0.026722633333333384
+          ],
+          "significativo": false
+        },
+        "duracaoS": {
+          "diferencaPct": -30.515226648336547,
+          "ic95": [
+            -39.98533333333332,
+            -6.185500000000012
+          ],
+          "significativo": true
+        }
+      }
+    },
+    "consultar-api": {
+      "baseline": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 5.833333333333333,
+          "dp": 0.752772652709081,
+          "mediana": 6,
+          "min": 5,
+          "max": 7
+        },
+        "turnos": {
+          "media": 6.833333333333333,
+          "dp": 0.752772652709081,
+          "mediana": 7,
+          "min": 6,
+          "max": 8
+        },
+        "tokens": {
+          "media": 113365.16666666667,
+          "dp": 6723.616390504939,
+          "mediana": 111326.5,
+          "min": 109433,
+          "max": 126956
+        },
+        "tokensSaida": {
+          "media": 1126,
+          "dp": 108.42140010164046,
+          "mediana": 1135,
+          "min": 991,
+          "max": 1265
+        },
+        "custoUsd": {
+          "media": 0.0532647,
+          "dp": 0.002856358950832336,
+          "mediana": 0.0535399,
+          "min": 0.0497579,
+          "max": 0.0564154
+        },
+        "duracaoS": {
+          "media": 19.0855,
+          "dp": 8.593328941684938,
+          "mediana": 16.091,
+          "min": 11.506,
+          "max": 32.21
+        },
+        "errosDeFerramenta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "negadas": {
+          "media": 2,
+          "dp": 0,
+          "mediana": 2,
+          "min": 2,
+          "max": 2
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 4.5,
+          "dp": 0.8366600265340756,
+          "mediana": 4,
+          "min": 4,
+          "max": 6
+        },
+        "turnos": {
+          "media": 5.5,
+          "dp": 0.8366600265340756,
+          "mediana": 5,
+          "min": 5,
+          "max": 7
+        },
+        "tokens": {
+          "media": 104867.5,
+          "dp": 3479.1394194541845,
+          "mediana": 103789,
+          "min": 102657,
+          "max": 111827
+        },
+        "tokensSaida": {
+          "media": 794.1666666666666,
+          "dp": 60.81255352858213,
+          "mediana": 774,
+          "min": 738,
+          "max": 907
+        },
+        "custoUsd": {
+          "media": 0.06334475,
+          "dp": 0.00650456425343005,
+          "mediana": 0.060799700000000005,
+          "min": 0.0597187,
+          "max": 0.0765282
+        },
+        "duracaoS": {
+          "media": 13.459333333333335,
+          "dp": 4.435364457027931,
+          "mediana": 12.7195,
+          "min": 8.891,
+          "max": 21.474
+        },
+        "errosDeFerramenta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "negadas": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "passosMcp": {
+          "media": 3.3333333333333335,
+          "dp": 0.5163977794943222,
+          "mediana": 3,
+          "min": 3,
+          "max": 4
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -22.857142857142854,
+          "ic95": [
+            -2.166666666666666,
+            -0.5
+          ],
+          "significativo": true
+        },
+        "turnos": {
+          "diferencaPct": -19.512195121951216,
+          "ic95": [
+            -2.166666666666666,
+            -0.5
+          ],
+          "significativo": true
+        },
+        "tokens": {
+          "diferencaPct": -7.495835728493915,
+          "ic95": [
+            -14379,
+            -3801.333333333343
+          ],
+          "significativo": true
+        },
+        "custoUsd": {
+          "diferencaPct": 18.924447147923495,
+          "ic95": [
+            0.0057425000000000045,
+            0.01577493333333333
+          ],
+          "significativo": true
+        },
+        "duracaoS": {
+          "diferencaPct": -29.478749137652482,
+          "ic95": [
+            -12.777333333333335,
+            1.107833333333332
+          ],
+          "significativo": false
+        }
+      }
+    },
+    "atualizar-integracao": {
+      "baseline": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 13.666666666666666,
+          "dp": 4.96655480858378,
+          "mediana": 14.5,
+          "min": 5,
+          "max": 19
+        },
+        "turnos": {
+          "media": 14.666666666666666,
+          "dp": 4.96655480858378,
+          "mediana": 15.5,
+          "min": 6,
+          "max": 20
+        },
+        "tokens": {
+          "media": 176246.33333333334,
+          "dp": 51785.68027811034,
+          "mediana": 170440,
+          "min": 116876,
+          "max": 270437
+        },
+        "tokensSaida": {
+          "media": 4223.666666666667,
+          "dp": 816.0822670948479,
+          "mediana": 4234.5,
+          "min": 2944,
+          "max": 5463
+        },
+        "custoUsd": {
+          "media": 0.12709671666666666,
+          "dp": 0.016430950043429215,
+          "mediana": 0.12316480000000002,
+          "min": 0.1116606,
+          "max": 0.1583074
+        },
+        "duracaoS": {
+          "media": 32.628166666666665,
+          "dp": 10.007072327442561,
+          "mediana": 30.130499999999998,
+          "min": 20.757,
+          "max": 49.973
+        },
+        "errosDeFerramenta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "negadas": {
+          "media": 2,
+          "dp": 2,
+          "mediana": 1,
+          "min": 1,
+          "max": 6
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 13.5,
+          "dp": 2.345207879911715,
+          "mediana": 12.5,
+          "min": 12,
+          "max": 18
+        },
+        "turnos": {
+          "media": 14.5,
+          "dp": 2.345207879911715,
+          "mediana": 13.5,
+          "min": 13,
+          "max": 19
+        },
+        "tokens": {
+          "media": 227894.33333333334,
+          "dp": 44214.625085673484,
+          "mediana": 211631.5,
+          "min": 173339,
+          "max": 287576
+        },
+        "tokensSaida": {
+          "media": 3777.1666666666665,
+          "dp": 499.6920718469192,
+          "mediana": 3527,
+          "min": 3345,
+          "max": 4612
+        },
+        "custoUsd": {
+          "media": 0.14951018333333335,
+          "dp": 0.01425880051062034,
+          "mediana": 0.14657565,
+          "min": 0.1313855,
+          "max": 0.17221190000000003
+        },
+        "duracaoS": {
+          "media": 40.98500000000001,
+          "dp": 16.723742511770507,
+          "mediana": 37.32299999999999,
+          "min": 23.66,
+          "max": 71.802
+        },
+        "errosDeFerramenta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "negadas": {
+          "media": 1.1666666666666667,
+          "dp": 0.408248290463863,
+          "mediana": 1,
+          "min": 1,
+          "max": 2
+        },
+        "passosMcp": {
+          "media": 2.3333333333333335,
+          "dp": 0.5163977794943222,
+          "mediana": 2,
+          "min": 2,
+          "max": 3
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -1.2195121951219523,
+          "ic95": [
+            -3.833333333333334,
+            4.333333333333334
+          ],
+          "significativo": false
+        },
+        "turnos": {
+          "diferencaPct": -1.1363636363636354,
+          "ic95": [
+            -3.833333333333334,
+            4.333333333333334
+          ],
+          "significativo": false
+        },
+        "tokens": {
+          "diferencaPct": 29.304439430418405,
+          "ic95": [
+            1218.333333333343,
+            99864
+          ],
+          "significativo": true
+        },
+        "custoUsd": {
+          "diferencaPct": 17.634969064897188,
+          "ic95": [
+            0.006387599999999993,
+            0.03781898333333332
+          ],
+          "significativo": true
+        },
+        "duracaoS": {
+          "diferencaPct": 25.612328816104714,
+          "ic95": [
+            -4.835166666666662,
+            23.1625
+          ],
+          "significativo": false
+        }
+      }
+    },
+    "novo-endpoint": {
+      "baseline": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 27.833333333333332,
+          "dp": 4.535048695071164,
+          "mediana": 29,
+          "min": 20,
+          "max": 32
+        },
+        "turnos": {
+          "media": 28.833333333333332,
+          "dp": 4.535048695071164,
+          "mediana": 30,
+          "min": 21,
+          "max": 33
+        },
+        "tokens": {
+          "media": 356108.8333333333,
+          "dp": 116096.54891755682,
+          "mediana": 344045,
+          "min": 226719,
+          "max": 525855
+        },
+        "tokensSaida": {
+          "media": 15484.833333333334,
+          "dp": 3071.8091357808457,
+          "mediana": 15923.5,
+          "min": 10520,
+          "max": 18902
+        },
+        "custoUsd": {
+          "media": 0.32959836666666664,
+          "dp": 0.05888266100368315,
+          "mediana": 0.34219279999999996,
+          "min": 0.2388233,
+          "max": 0.38360510000000003
+        },
+        "duracaoS": {
+          "media": 93.32533333333333,
+          "dp": 21.468306236558735,
+          "mediana": 98.8285,
+          "min": 61.634,
+          "max": 112.556
+        },
+        "errosDeFerramenta": {
+          "media": 0.8333333333333334,
+          "dp": 0.752772652709081,
+          "mediana": 1,
+          "min": 0,
+          "max": 2
+        },
+        "negadas": {
+          "media": 2.5,
+          "dp": 1.224744871391589,
+          "mediana": 2,
+          "min": 1,
+          "max": 4
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 6,
+        "sucesso": 6,
+        "passos": {
+          "media": 21.5,
+          "dp": 2.588435821108957,
+          "mediana": 22,
+          "min": 18,
+          "max": 25
+        },
+        "turnos": {
+          "media": 22.5,
+          "dp": 2.588435821108957,
+          "mediana": 23,
+          "min": 19,
+          "max": 26
+        },
+        "tokens": {
+          "media": 431927.1666666667,
+          "dp": 91322.53018487095,
+          "mediana": 412093,
+          "min": 326635,
+          "max": 600321
+        },
+        "tokensSaida": {
+          "media": 10707.333333333334,
+          "dp": 1566.579288343449,
+          "mediana": 10301,
+          "min": 9210,
+          "max": 13620
+        },
+        "custoUsd": {
+          "media": 0.2860627333333334,
+          "dp": 0.03061368621382708,
+          "mediana": 0.28396795,
+          "min": 0.25098550000000003,
+          "max": 0.3405804
+        },
+        "duracaoS": {
+          "media": 77.91983333333333,
+          "dp": 12.683106298011804,
+          "mediana": 79.71199999999999,
+          "min": 58.248,
+          "max": 97.148
+        },
+        "errosDeFerramenta": {
+          "media": 0.16666666666666666,
+          "dp": 0.408248290463863,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "negadas": {
+          "media": 2.5,
+          "dp": 1.378404875209022,
+          "mediana": 2,
+          "min": 1,
+          "max": 5
+        },
+        "passosMcp": {
+          "media": 4.833333333333333,
+          "dp": 1.169045194450012,
+          "mediana": 5,
+          "min": 3,
+          "max": 6
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -22.754491017964074,
+          "ic95": [
+            -10,
+            -2.5
+          ],
+          "significativo": true
+        },
+        "turnos": {
+          "diferencaPct": -21.965317919075144,
+          "ic95": [
+            -10,
+            -2.5
+          ],
+          "significativo": true
+        },
+        "tokens": {
+          "diferencaPct": 21.29077580683434,
+          "ic95": [
+            -35044,
+            179602
+          ],
+          "significativo": false
+        },
+        "custoUsd": {
+          "diferencaPct": -13.208692073817907,
+          "ic95": [
+            -0.09073053333333336,
+            0.003857800000000078
+          ],
+          "significativo": false
+        },
+        "duracaoS": {
+          "diferencaPct": -16.507307769237368,
+          "ic95": [
+            -33.623999999999995,
+            2.5811666666666753
+          ],
+          "significativo": false
+        }
+      }
+    },
+    "todas": {
+      "baseline": {
+        "n": 30,
+        "sucesso": 30,
+        "passos": {
+          "media": 17.433333333333334,
+          "dp": 10.314647547201433,
+          "mediana": 16.5,
+          "min": 4,
+          "max": 37
+        },
+        "turnos": {
+          "media": 18.433333333333334,
+          "dp": 10.314647547201433,
+          "mediana": 17.5,
+          "min": 5,
+          "max": 38
+        },
+        "tokens": {
+          "media": 231900.5,
+          "dp": 122158.33330072224,
+          "mediana": 181906,
+          "min": 109433,
+          "max": 525855
+        },
+        "tokensSaida": {
+          "media": 7085.233333333334,
+          "dp": 5458.059833913028,
+          "mediana": 5266,
+          "min": 991,
+          "max": 18902
+        },
+        "custoUsd": {
+          "media": 0.17606126333333336,
+          "dp": 0.10325163118705977,
+          "mediana": 0.1539163,
+          "min": 0.0497579,
+          "max": 0.38360510000000003
+        },
+        "duracaoS": {
+          "media": 52.98063333333333,
+          "dp": 32.535568194784474,
+          "mediana": 43.040000000000006,
+          "min": 11.506,
+          "max": 112.556
+        },
+        "errosDeFerramenta": {
+          "media": 0.23333333333333334,
+          "dp": 0.5040069329937306,
+          "mediana": 0,
+          "min": 0,
+          "max": 2
+        },
+        "negadas": {
+          "media": 2.1666666666666665,
+          "dp": 1.3412123525798005,
+          "mediana": 2,
+          "min": 0,
+          "max": 6
+        },
+        "passosMcp": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0.2,
+          "dp": 0.4068381021724863,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "criteriosReprovados": {}
+      },
+      "vvpost": {
+        "n": 30,
+        "sucesso": 30,
+        "passos": {
+          "media": 14.1,
+          "dp": 6.676515713226886,
+          "mediana": 15,
+          "min": 4,
+          "max": 25
+        },
+        "turnos": {
+          "media": 15.1,
+          "dp": 6.676515713226886,
+          "mediana": 16,
+          "min": 5,
+          "max": 26
+        },
+        "tokens": {
+          "media": 266317.86666666664,
+          "dp": 124936.79886377127,
+          "mediana": 266464,
+          "min": 102657,
+          "max": 600321
+        },
+        "tokensSaida": {
+          "media": 5032.466666666666,
+          "dp": 3556.690981829864,
+          "mediana": 3891,
+          "min": 738,
+          "max": 13620
+        },
+        "custoUsd": {
+          "media": 0.17243255333333327,
+          "dp": 0.07657176043460795,
+          "mediana": 0.16612760000000001,
+          "min": 0.0597187,
+          "max": 0.3405804
+        },
+        "duracaoS": {
+          "media": 43.75836666666667,
+          "dp": 24.670495110533363,
+          "mediana": 41.513,
+          "min": 8.891,
+          "max": 97.148
+        },
+        "errosDeFerramenta": {
+          "media": 0.06666666666666667,
+          "dp": 0.2537081317024625,
+          "mediana": 0,
+          "min": 0,
+          "max": 1
+        },
+        "negadas": {
+          "media": 1.2,
+          "dp": 1.3995073024658256,
+          "mediana": 1,
+          "min": 0,
+          "max": 5
+        },
+        "passosMcp": {
+          "media": 3.3333333333333335,
+          "dp": 1.2954385047312087,
+          "mediana": 3,
+          "min": 2,
+          "max": 6
+        },
+        "qualidade": {
+          "media": 1,
+          "dp": 0,
+          "mediana": 1,
+          "min": 1,
+          "max": 1
+        },
+        "credencialExposta": {
+          "media": 0,
+          "dp": 0,
+          "mediana": 0,
+          "min": 0,
+          "max": 0
+        },
+        "criteriosReprovados": {}
+      },
+      "comparacao": {
+        "passos": {
+          "diferencaPct": -19.120458891013392,
+          "ic95": [
+            -7.733333333333334,
+            0.8000000000000007
+          ],
+          "significativo": false
+        },
+        "turnos": {
+          "diferencaPct": -18.083182640144667,
+          "ic95": [
+            -7.733333333333334,
+            0.8000000000000007
+          ],
+          "significativo": false
+        },
+        "tokens": {
+          "diferencaPct": 14.841437024355987,
+          "ic95": [
+            -28692.666666666686,
+            97275.70000000001
+          ],
+          "significativo": false
+        },
+        "custoUsd": {
+          "diferencaPct": -2.061049620625477,
+          "ic95": [
+            -0.051320813333333354,
+            0.041524039999999984
+          ],
+          "significativo": false
+        },
+        "duracaoS": {
+          "diferencaPct": -17.406863765942138,
+          "ic95": [
+            -24.102666666666657,
+            5.414600000000007
+          ],
+          "significativo": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "entregaja",
+  "name": "EntregaJá",
+  "description": "Transportadora reserva da Loja, usada quando a TransNorte não responde.",
+  "version": "1.0.0",
+  "defaults": {
+    "baseUrl": "https://frete.entregaja.example",
+    "auth": {
+      "type": "bearer",
+      "token": "{{ENTREGAJA_TOKEN}}"
+    }
+  },
+  "nodes": []
+}

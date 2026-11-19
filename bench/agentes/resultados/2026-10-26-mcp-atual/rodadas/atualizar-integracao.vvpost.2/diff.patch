@@ -1,0 +1,156 @@
+diff --git a/api/docs/frete.md b/api/docs/frete.md
+index 4353f85..2713423 100644
+--- a/api/docs/frete.md
++++ b/api/docs/frete.md
+@@ -15,7 +15,8 @@ O campo `transportadora` do pedido diz quem cotou: `transnorte` ou `entregaja`.
+ 
+ | Variável | Uso |
+ | --- | --- |
+-| `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v2`) |
++| `TRANSNORTE_URL` | Base da API da TransNorte (padrão `https://api.transnorte.example/v3`) |
+ | `TRANSNORTE_API_KEY` | Chave da TransNorte, enviada em `X-Api-Key` |
++| `TRANSNORTE_CLIENTE_ID` | Id do cliente da Loja na TransNorte, enviado em `X-Cliente-Id` (obrigatório na v3) |
+ | `ENTREGAJA_URL` | Base da API da EntregaJá (padrão `https://frete.entregaja.example`) |
+ | `ENTREGAJA_TOKEN` | Token da EntregaJá, enviado como `Authorization: Bearer` |
+diff --git a/api/environments/homolog.env.json b/api/environments/homolog.env.json
+index 9d3d07a..0210fd5 100644
+--- a/api/environments/homolog.env.json
++++ b/api/environments/homolog.env.json
+@@ -3,9 +3,31 @@
+   "id": "homolog",
+   "name": "Homologação",
+   "variables": {
+-    "LOJA_URL": { "type": "string", "value": "http://127.0.0.1:41583" },
+-    "LOJA_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true, "description": "Chave do canal de venda na homologação" },
+-    "TRANSNORTE_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "ENTREGAJA_TOKEN": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true }
++    "LOJA_URL": {
++      "type": "string",
++      "value": "http://127.0.0.1:41583"
++    },
++    "LOJA_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true,
++      "description": "Chave do canal de venda na homologação"
++    },
++    "TRANSNORTE_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "ENTREGAJA_TOKEN": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "TRANSNORTE_CLIENTE_ID": {
++      "type": "string",
++      "value": "",
++      "description": "Id do cliente da Loja na TransNorte, enviado em X-Cliente-Id",
++      "placeholder": "id do cliente"
++    }
+   }
+ }
+diff --git a/api/environments/producao.env.json b/api/environments/producao.env.json
+index 305b518..3491e7a 100644
+--- a/api/environments/producao.env.json
++++ b/api/environments/producao.env.json
+@@ -3,9 +3,30 @@
+   "id": "producao",
+   "name": "Produção",
+   "variables": {
+-    "LOJA_URL": { "type": "string", "value": "https://api.loja.example" },
+-    "LOJA_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "TRANSNORTE_API_KEY": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true },
+-    "ENTREGAJA_TOKEN": { "type": "string", "value": "__REQUIRED_SECRET__", "isSecret": true }
++    "LOJA_URL": {
++      "type": "string",
++      "value": "https://api.loja.example"
++    },
++    "LOJA_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "TRANSNORTE_API_KEY": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "ENTREGAJA_TOKEN": {
++      "type": "string",
++      "value": "__REQUIRED_SECRET__",
++      "isSecret": true
++    },
++    "TRANSNORTE_CLIENTE_ID": {
++      "type": "string",
++      "value": "",
++      "description": "Id do cliente da Loja na TransNorte, enviado em X-Cliente-Id",
++      "placeholder": "id do cliente"
++    }
+   }
+ }
+diff --git a/api/flows/transnorte/transnorte.flow.vvpost.json b/api/flows/transnorte/transnorte.flow.vvpost.json
+index 087d3f0..1644ba4 100644
+--- a/api/flows/transnorte/transnorte.flow.vvpost.json
++++ b/api/flows/transnorte/transnorte.flow.vvpost.json
+@@ -3,9 +3,12 @@
+   "id": "transnorte",
+   "name": "TransNorte",
+   "description": "Transportadora principal da Loja. A Loja usa a cotação de frete; as outras rotas ficam para o painel de logística.",
+-  "version": "2.0.0",
++  "version": "3.0.0",
+   "defaults": {
+-    "baseUrl": "https://api.transnorte.example/v2",
++    "baseUrl": "https://api.transnorte.example/v3",
++    "headers": {
++      "X-Cliente-Id": "{{TRANSNORTE_CLIENTE_ID}}"
++    },
+     "auth": {
+       "type": "apiKey",
+       "name": "X-Api-Key",
+diff --git a/src/frete/transnorte.js b/src/frete/transnorte.js
+index 7be3a23..f82bb35 100644
+--- a/src/frete/transnorte.js
++++ b/src/frete/transnorte.js
+@@ -1,13 +1,17 @@
+ // Cliente da TransNorte (cotação de frete). Documentação da API em openapi/transnorte.yaml.
+-const BASE = process.env.TRANSNORTE_URL ?? 'https://api.transnorte.example/v2'
++const BASE = process.env.TRANSNORTE_URL ?? 'https://api.transnorte.example/v3'
+ 
+-export function criarTransNorte({ fetch = globalThis.fetch, apiKey = process.env.TRANSNORTE_API_KEY } = {}) {
++export function criarTransNorte({
++  fetch = globalThis.fetch,
++  apiKey = process.env.TRANSNORTE_API_KEY,
++  clienteId = process.env.TRANSNORTE_CLIENTE_ID
++} = {}) {
+   return {
+     nome: 'transnorte',
+     async cotar({ cepDestino, pesoGramas }) {
+       const res = await fetch(`${BASE}/cotacoes`, {
+         method: 'POST',
+-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey ?? '' },
++        headers: { 'content-type': 'application/json', 'x-api-key': apiKey ?? '', 'x-cliente-id': clienteId ?? '' },
+         body: JSON.stringify({ cepDestino, pesoKg: pesoGramas / 1000 })
+       })
+       if (!res.ok) throw new Error(`TransNorte respondeu ${res.status}`)
+diff --git a/test/frete.test.js b/test/frete.test.js
+index d1cae3d..54270e5 100644
+--- a/test/frete.test.js
++++ b/test/frete.test.js
+@@ -7,11 +7,12 @@ import { fetchFalso } from './apoio.js'
+ 
+ test('TransNorte cota em reais e converte para centavos', async () => {
+   const fetch = fetchFalso({ valor: 23.5, prazoDiasUteis: 3 })
+-  const r = await criarTransNorte({ fetch, apiKey: 'k' }).cotar({ cepDestino: '01310100', pesoGramas: 1500 })
++  const r = await criarTransNorte({ fetch, apiKey: 'k', clienteId: 'c1' }).cotar({ cepDestino: '01310100', pesoGramas: 1500 })
+   assert.deepEqual(r, { valorCentavos: 2350, prazoDias: 3, transportadora: 'transnorte' })
+-  assert.match(fetch.chamadas[0].url, /\/cotacoes$/)
++  assert.equal(fetch.chamadas[0].url, 'https://api.transnorte.example/v3/cotacoes')
+   assert.equal(JSON.parse(fetch.chamadas[0].init.body).pesoKg, 1.5)
+   assert.equal(fetch.chamadas[0].init.headers['x-api-key'], 'k')
++  assert.equal(fetch.chamadas[0].init.headers['x-cliente-id'], 'c1')
+ })
+ 
+ test('EntregaJá cota por query string', async () => {

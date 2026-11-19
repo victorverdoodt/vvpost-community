@@ -1,0 +1,21 @@
+name: Sugerir um recurso
+description: Uma ideia para o VVPost.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema isso resolve
+      description: Conte o caso de uso. O problema importa mais que a solução.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como você imagina
+      description: O comportamento esperado, na interface, no CLI ou no formato dos arquivos.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas
+      description: Como você resolve hoje, ou como outras ferramentas resolvem.

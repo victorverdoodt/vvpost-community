@@ -1,0 +1,37 @@
+meta {
+  name: Criar pedido
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/pedidos
+  body: json
+  auth: apikey
+}
+
+auth:apikey {
+  key: X-Api-Key
+  value: {{apiKey}}
+  placement: header
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "item": "livro",
+    "qtd": 2
+  }
+}
+
+vars:pre-request {
+  pedidoId: 42
+}
+
+script:pre-request {
+  req.setHeader("X-Trace", bru.getEnvVar("trace"));
+  bru.runRequest("outro");
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/docs.json",
+  "title": "Acme Payments",
+  "subtitle": "Arquitetura e referência das APIs",
+  "organization": "Equipe Pagamentos",
+  "version": "1.4",
+  "cover": true,
+  "toc": true,
+  "numberHeadings": true,
+  "header": { "right": "{{organization}} · v{{version}}" },
+  "footer": { "center": "{{page}} / {{pages}}" }
+}

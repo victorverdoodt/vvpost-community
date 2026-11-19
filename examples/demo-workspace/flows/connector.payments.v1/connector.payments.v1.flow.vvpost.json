@@ -1,0 +1,16 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "connector.payments.v1",
+  "name": "Payments Service v1",
+  "description": "Cobranças **PIX** e cartão. Herda a auth da base corporativa.",
+  "version": "1.4.0",
+  "extends": "connector.corporate.base",
+  "defaults": {
+    "basePath": "/payments/v1",
+    "headers": {
+      "X-Tenant": "acme-billing",
+      "Content-Type": "application/json"
+    }
+  },
+  "nodes": []
+}

@@ -1,0 +1,150 @@
+{
+  "rodada": "atualizar-integracao.vvpost.2",
+  "tarefa": "atualizar-integracao",
+  "variante": "vvpost",
+  "n": 2,
+  "inicio": "2026-10-26T13:21:02.646Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 19,
+  "passos": 18,
+  "passosMcp": 3,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 2,
+    "ToolSearch": 1,
+    "Read": 3,
+    "mcp__vvpost__get_source": 1,
+    "mcp__vvpost__find_references": 1,
+    "Bash": 4,
+    "Edit": 5,
+    "mcp__vvpost__edit_project": 1
+  },
+  "tokens": {
+    "entrada": 18,
+    "escritaCache": 25067,
+    "leituraCache": 257879,
+    "saida": 4612,
+    "total": 287576
+  },
+  "custoUsd": 0.17221190000000003,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.17221190000000003
+  },
+  "duracaoMs": 45037,
+  "terminou": true,
+  "homolog": {
+    "porta": 41583,
+    "chave": "hk-824fb968638835dbec9c9497",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O cliente da TransNorte, os testes e a documentação agora usam a v3. `npm test` passa, com 11 de 11 testes. Não rodei nenhuma chamada real à API da TransNorte.\n\n- **Cliente** (`src/frete/transnorte.js`): a base padrão é `https://api.transnorte.example/v3`. Toda cotação envia o header `X-Cliente-Id`. O valor vem de `TRANSNORTE_CLIENTE_ID`, ou do parâmetro `clienteId` ao criar o cliente.\n- **Testes** (`test/frete.test.js`): o teste da TransNorte confere a URL completa da v3 e o header `x-cliente-id`.\n- **Catálogo do VVPost**:\n  - O conector `transnorte` passou para a versão 3.0.0, com a base v3.\n  - O header `X-Cliente-Id: {{TRANSNORTE_CLIENTE_ID}}` fica no conector e vale para todos os endpoints.\n  - A variável `TRANSNORTE_CLIENTE_ID` foi criada nos ambientes `homolog` e `producao`, como variável comum, não secreta. Os dois ambientes estão sem valor, então alguém precisa preencher o id real.\n- **Página `docs/frete.md`**: a base padrão agora é v3, e a tabela de configuração ganhou a linha de `TRANSNORTE_CLIENTE_ID`.\n\nA gravação no VVPost não trouxe `documentErrors` nem `stalePdf`. Por isso não exportei o PDF.\n\nSem `TRANSNORTE_CLIENTE_ID` definido, o cliente manda o header vazio, igual ao que já acontece com a chave da API.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

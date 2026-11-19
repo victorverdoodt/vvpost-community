@@ -1,0 +1,163 @@
+{
+  "info": {
+    "_postman_id": "8a1c2f0e-1111-4c3b-9d7e-000000000001",
+    "name": "Serviço de Cobrança",
+    "description": "API de cobrança usada nos testes do importador.",
+    "version": "2.3.1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base-url", "value": "https://api.cobranca.com.br/v2", "type": "string" },
+    { "key": "accessToken", "value": "token-real-da-colecao", "type": "string" },
+    { "key": "tenant", "value": "acme", "type": "string" }
+  ],
+  "event": [
+    { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["console.log('pre')"] } }
+  ],
+  "item": [
+    {
+      "name": "Cobranças",
+      "description": "Operações de cobrança",
+      "item": [
+        {
+          "name": "Criar cobrança",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": ["pm.test('ok', () => {", "  pm.response.to.have.status(201)", "})"] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Tenant", "value": "{{tenant}}" },
+              { "key": "X-Desligado", "value": "x", "disabled": true }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 150.5,\n  \"customerId\": \"{{customer-id}}\",\n  \"method\": \"PIX\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base-url}}/charges?expand=items&debug=1",
+              "host": ["{{base-url}}"],
+              "path": ["charges"],
+              "query": [
+                { "key": "expand", "value": "items" },
+                { "key": "debug", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar cobrança",
+          "request": {
+            "method": "GET",
+            "url": "{{base-url}}/charges/:chargeId"
+          }
+        },
+        {
+          "name": "Buscar cobrança",
+          "request": {
+            "method": "GET",
+            "url": "{{base-url}}/charges/:chargeId/items"
+          }
+        },
+        {
+          "name": "Webhooks legados",
+          "auth": {
+            "type": "apikey",
+            "apikey": [
+              { "key": "key", "value": "X-Api-Key" },
+              { "key": "value", "value": "chave-fixa-123" },
+              { "key": "in", "value": "header" }
+            ]
+          },
+          "item": [
+            {
+              "name": "Reenviar webhook",
+              "request": {
+                "method": "POST",
+                "header": "Content-Type: application/x-www-form-urlencoded\nX-Origem: postman",
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    { "key": "eventId", "value": "{{eventId}}" },
+                    { "key": "client_secret", "value": "segredo-literal" }
+                  ]
+                },
+                "url": "{{base-url}}/webhooks/resend"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "username", "value": "{{user}}", "type": "text" },
+                { "key": "avatar", "type": "file", "src": "/tmp/a.png" }
+              ]
+            },
+            "url": "https://auth.cobranca.com.br/oauth/token"
+          }
+        },
+        {
+          "name": "Basic",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "admin" },
+                { "key": "password", "value": "s3nh4" }
+              ]
+            },
+            "method": "GET",
+            "url": "{{base-url}}/me"
+          }
+        }
+      ]
+    },
+    { "name": "Vazia", "item": [] },
+    {
+      "name": "Status",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2ln" }],
+        "url": "https://status.cobranca.com.br/health?api_key=abc123"
+      }
+    },
+    {
+      "name": "Socket",
+      "request": { "method": "GET", "url": "wss://ws.cobranca.com.br/stream" }
+    },
+    {
+      "name": "Purge",
+      "request": { "method": "PURGE", "url": "{{base-url}}/cache" }
+    },
+    {
+      "name": "GraphQL",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "graphql",
+          "graphql": { "query": "query { charge(id: \"{{chargeId}}\") { id } }", "variables": "{\"x\": 1}" }
+        },
+        "url": "{{base-url}}/graphql?trace={{$guid}}&ts={{$timestamp}}"
+      }
+    }
+  ]
+}

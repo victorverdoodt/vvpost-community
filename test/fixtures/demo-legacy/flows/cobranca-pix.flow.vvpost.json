@@ -1,0 +1,38 @@
+{
+  "id": "flow.cobranca_pix",
+  "name": "Cobrança PIX",
+  "nodes": [
+    {
+      "id": "cliente",
+      "name": "Cliente",
+      "type": "request",
+      "request": {
+        "connector": "connector.customers.v2",
+        "endpoint": "me"
+      }
+    },
+    {
+      "id": "cobranca",
+      "name": "Cobranca",
+      "type": "request",
+      "request": {
+        "connector": "connector.payments.v1",
+        "endpoint": "create_charge",
+        "method": "POST",
+        "url": "/charges",
+        "body": {
+          "amount": 150,
+          "currency": "BRL",
+          "customer_id": "{{ $nodes.Cliente.data.id }}",
+          "method": "PIX"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "cliente",
+      "to": "cobranca"
+    }
+  ]
+}

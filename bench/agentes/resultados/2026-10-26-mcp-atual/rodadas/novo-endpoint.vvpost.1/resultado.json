@@ -1,0 +1,148 @@
+{
+  "rodada": "novo-endpoint.vvpost.1",
+  "tarefa": "novo-endpoint",
+  "variante": "vvpost",
+  "n": 1,
+  "inicio": "2026-10-26T13:18:12.020Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 19,
+  "passos": 18,
+  "passosMcp": 3,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 8,
+    "ToolSearch": 1,
+    "mcp__vvpost__get_api_catalog": 1,
+    "Edit": 6,
+    "mcp__vvpost__get_source": 1,
+    "mcp__vvpost__edit_project": 1
+  },
+  "tokens": {
+    "entrada": 22,
+    "escritaCache": 33146,
+    "leituraCache": 364976,
+    "saida": 9691,
+    "total": 407835
+  },
+  "custoUsd": 0.26603560000000004,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.26603560000000004
+  },
+  "duracaoMs": 72162,
+  "terminou": true,
+  "homolog": {
+    "porta": 36377,
+    "chave": "hk-22d514655d4f3b475551514a",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "`GET /pedidos/{id}/rastreio` está pronto, com código, testes e documentação atualizados. `npm test` passa (16 testes), mas não chamei a TransNorte de verdade, só testei com respostas simuladas.\n\n**Como responde**\n- Pedido que não existe devolve 404 `PEDIDO_NAO_ENCONTRADO`, sem consultar a TransNorte.\n- O endpoint consulta `GET /rastreamentos/{codigo}` na TransNorte, com o id do pedido como código, e devolve o `{ codigo, eventos }` dela como veio.\n- Código que a TransNorte não conhece (404 dela) devolve 404 `RASTREIO_NAO_ENCONTRADO`.\n- Acrescentei um caso que você não pediu: se a TransNorte falhar por outro motivo (erro HTTP ou rede), a resposta é 503 `RASTREIO_INDISPONIVEL`, no mesmo padrão do `FRETE_INDISPONIVEL`.\n\n**Código e testes**\n- `src/frete/transnorte.js` ganhou o método `rastrear(codigo)`.\n- A rota está em `src/app.js`. O `criarApp` agora aceita um parâmetro `transnorte`, para os testes injetarem um cliente falso.\n- Os testes novos cobrem os quatro desfechos em `test/pedidos.test.js` e o cliente em `test/frete.test.js`.\n\n**Documentação (VVPost)**\n- O catálogo ganhou o endpoint `loja-api/rastrearPedido`, com exemplos de resposta 200, 404 e 503.\n- O guia de integração tem uma seção \"Rastrear a entrega\" com a diretiva do endpoint e os erros.\n- A página de arquitetura menciona o rastreio no componente da TransNorte e no diagrama.\n- A resposta da gravação não trouxe `stalePdf` nem `documentErrors`, então não exportei o PDF.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

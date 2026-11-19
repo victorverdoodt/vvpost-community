@@ -1,0 +1,67 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.listarPontos",
+  "name": "Pontos de retirada perto de um CEP",
+  "extends": "transnorte",
+  "order": 8,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/pontos-de-entrega",
+        "query": {
+          "cep": "",
+          "raioKm": "5"
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Pontos",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "pontos": [
+          {
+            "id": "string",
+            "nome": "string",
+            "endereco": "string",
+            "distanciaKm": 0
+          }
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "pontos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "endereco": {
+                  "type": "string"
+                },
+                "distanciaKm": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

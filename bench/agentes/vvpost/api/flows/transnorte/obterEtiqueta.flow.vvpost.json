@@ -1,0 +1,35 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "transnorte.obterEtiqueta",
+  "name": "Uma etiqueta, com o PDF",
+  "extends": "transnorte",
+  "order": 7,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/etiquetas/{codigo}"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Etiqueta",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "codigo": "string",
+        "pdfUrl": "https://example.com"
+      },
+      "schema": {
+        "$ref": "schema:Etiqueta"
+      }
+    }
+  ]
+}

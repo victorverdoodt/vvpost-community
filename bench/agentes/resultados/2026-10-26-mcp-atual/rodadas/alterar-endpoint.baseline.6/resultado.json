@@ -1,0 +1,115 @@
+{
+  "rodada": "alterar-endpoint.baseline.6",
+  "tarefa": "alterar-endpoint",
+  "variante": "baseline",
+  "n": 6,
+  "inicio": "2026-10-26T13:27:37.474Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 26,
+  "passos": 25,
+  "passosMcp": 0,
+  "errosDeFerramenta": 4,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash",
+    "Write",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 8,
+    "Write": 1,
+    "Read": 1,
+    "Edit": 15
+  },
+  "tokens": {
+    "entrada": 22,
+    "escritaCache": 26198,
+    "leituraCache": 284683,
+    "saida": 8177,
+    "total": 319080
+  },
+  "custoUsd": 0.21507430000000005,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.21507430000000005
+  },
+  "duracaoMs": 85757,
+  "terminou": true,
+  "homolog": {
+    "porta": 41167,
+    "chave": "hk-fcc069adc05da6d582904a8e",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, `cep` agora é `cepEntrega`, com as mesmas regras e ainda obrigatório. O pedido devolvido traz `cepEntrega` e o novo `prazoEntregaDias`. Os 11 testes passam com `npm test`. Não subi a API de homologação nem fiz chamada real, e não fiz commit.\n\n- **Código:** em `src/pedidos.js`, a validação e a resposta usam `cepEntrega`. `prazoEntregaDias` vem do `prazoDias` da cotação da transportadora. Nas chamadas às transportadoras, o parâmetro interno `cepDestino` e o `cep` da query da EntregaJá continuam como estavam, porque pertencem a essas APIs.\n- **Testes:** `test/pedidos.test.js` passou a usar `cepEntrega` e agora confere também `prazoEntregaDias` (4, o valor do frete falso).\n- **Documentação:** atualizei `openapi/loja.yaml` (corpo, exemplos e schemas, com `prazoEntregaDias` como obrigatório na resposta), `docs/guia-de-integracao.md` e `docs/frete.md`. O `README.md` e `docs/arquitetura.md` não citavam o campo. Uma busca final não achou mais `cep` solto no código, nos testes nem nas páginas, só o `cep` da EntregaJá.\n\nA unidade do prazo muda conforme a transportadora: a TransNorte informa dias úteis e a EntregaJá, dias corridos. A API repassa o número como veio e eu deixei isso escrito na especificação e nas páginas.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

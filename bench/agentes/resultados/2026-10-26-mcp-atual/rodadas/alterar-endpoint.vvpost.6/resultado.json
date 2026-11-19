@@ -1,0 +1,140 @@
+{
+  "rodada": "alterar-endpoint.vvpost.6",
+  "tarefa": "alterar-endpoint",
+  "variante": "vvpost",
+  "n": 6,
+  "inicio": "2026-10-26T13:27:45.561Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 11,
+  "passos": 10,
+  "passosMcp": 3,
+  "errosDeFerramenta": 0,
+  "ferramentasComErro": [],
+  "negadas": [],
+  "porFerramenta": {
+    "Bash": 6,
+    "ToolSearch": 1,
+    "mcp__vvpost__find_references": 1,
+    "mcp__vvpost__edit_project": 2
+  },
+  "tokens": {
+    "entrada": 16,
+    "escritaCache": 29890,
+    "leituraCache": 241454,
+    "saida": 3588,
+    "total": 274948
+  },
+  "custoUsd": 0.1796174,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.1796174
+  },
+  "duracaoMs": 50971,
+  "terminou": true,
+  "homolog": {
+    "porta": 33081,
+    "chave": "hk-0ec5ffcb186d37ac0f7ed97e",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, o corpo agora usa `cepEntrega`, com as mesmas regras e ainda obrigatório. O pedido devolvido traz `cepEntrega` no lugar de `cep` e passa a trazer `prazoEntregaDias`. Os 11 testes passam (`npm test`).\n\n**Falha minha na documentação, já corrigida:** no primeiro lote do `edit_project` incluí por engano uma operação de teste que sobrescreveu o schema `Pedido` com um placeholder. Restaurei o schema completo num segundo lote e conferi o arquivo. Os exemplos dos fluxos não foram afetados.\n\n**Código e testes**\n- `src/pedidos.js` lê `entrada.cepEntrega` e devolve `cepEntrega`. O valor de `prazoEntregaDias` é o `prazoDias` da cotação.\n- Os testes em `test/pedidos.test.js` usam `cepEntrega`, e o teste de criação confere `prazoEntregaDias`.\n\n**Documentação (VVPost)**\n- Troquei `cep` por `cepEntrega` nos schemas `NovoPedido` e `Pedido`, nos fluxos de pedido da Loja e no guia de integração.\n- Os fluxos de `transnorte` e `entregaja` mantêm `cep`, porque são as APIs das transportadoras.\n- `Pedido` tem o campo novo `prazoEntregaDias`, obrigatório. Ele aparece também nos exemplos de criar, obter, listar e cancelar pedido.\n- Descrevi o campo no guia de integração e em `frete.md`.\n- O prazo vai como a transportadora informou, sem conversão. A TransNorte informa em dias úteis e a EntregaJá em dias corridos. Anotei isso em `frete.md`; se você preferir normalizar a unidade, é uma mudança à parte.\n- As respostas de escrita não trouxeram `documentErrors` nem `stalePdf`, então não exportei o PDF.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

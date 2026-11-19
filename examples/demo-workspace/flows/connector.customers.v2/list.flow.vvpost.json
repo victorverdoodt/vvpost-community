@@ -1,0 +1,18 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "connector.customers.v2.list",
+  "name": "Listar clientes",
+  "extends": "connector.customers.v2",
+  "order": 2,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/?page=1&size=20"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": [
+    "erro"
+  ],
+  "properties": {
+    "erro": {
+      "type": "object",
+      "required": [
+        "codigo",
+        "mensagem"
+      ],
+      "properties": {
+        "codigo": {
+          "type": "string"
+        },
+        "mensagem": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-vvpost": {
+    "source": "/home/claude/vvpost-community/bench/agentes/baseline/openapi/loja.yaml",
+    "hash": "ad475e723d9e3a1f"
+  }
+}

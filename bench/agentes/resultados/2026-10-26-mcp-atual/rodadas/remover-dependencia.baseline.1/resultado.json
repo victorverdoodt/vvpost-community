@@ -1,0 +1,112 @@
+{
+  "rodada": "remover-dependencia.baseline.1",
+  "tarefa": "remover-dependencia",
+  "variante": "baseline",
+  "n": 1,
+  "inicio": "2026-10-26T13:17:26.970Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 27,
+  "passos": 26,
+  "passosMcp": 0,
+  "errosDeFerramenta": 2,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 2,
+    "Bash": 8,
+    "Write": 2,
+    "Edit": 14
+  },
+  "tokens": {
+    "entrada": 22,
+    "escritaCache": 23738,
+    "leituraCache": 276895,
+    "saida": 8550,
+    "total": 309205
+  },
+  "custoUsd": 0.20818550000000002,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.20818550000000002
+  },
+  "duracaoMs": 71811,
+  "terminou": true,
+  "homolog": {
+    "porta": 37249,
+    "chave": "hk-c54ba85e8b3caf6343faee2c",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "A integração com a EntregaJá foi removida, e o frete agora é cotado só pela TransNorte. Se ela falhar, o pedido continua sendo recusado com `503 FRETE_INDISPONIVEL`. `npm test` passa (10 testes) e uma busca no repositório não achou mais nenhuma menção à EntregaJá. Não rodei nada contra a API de homologação.\n\n**Código**\n- Apaguei `src/frete/entregaja.js`.\n- `criarFrete` em `src/frete/index.js` agora recebe só `{ transnorte }`, em vez da lista `provedores`. Quando a TransNorte falha, a mensagem do 503 passa a ser `TransNorte não cotou o frete (<causa>)`.\n\n**Testes**\n- Em `test/frete.test.js`, removi os testes da EntregaJá e o do fallback.\n- Troquei o teste de \"todas falham\" por dois novos: a cotação da TransNorte é devolvida, e o erro sai quando ela falha.\n\n**Documentação**\n- Apaguei `openapi/entregaja.yaml`.\n- Em `openapi/loja.yaml`, ajustei a descrição de `POST /pedidos` e a descrição geral da API, e o `enum` de `transportadora` agora é só `[transnorte]`.\n- Atualizei `docs/frete.md` (fluxo e variáveis `ENTREGAJA_*`), `docs/arquitetura.md` (texto, diagrama e tabela), `docs/guia-de-integracao.md` e o `README.md`.\n- Tirei a referência a `openapi/entregaja.yaml` do `CLAUDE.md`.\n\nRetirar `entregaja` do `enum` de `transportadora` muda o contrato da API. Pedidos antigos que tenham `transportadora: entregaja` deixam de seguir o schema, e não há persistência no repositório que indique se isso existe. Também não mexi na versão do `openapi/loja.yaml` (1.3.0). Se você quiser um bump, me avise.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

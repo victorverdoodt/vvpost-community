@@ -1,0 +1,67 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "loja-api.listarPedidos",
+  "name": "Lista os pedidos",
+  "extends": "loja-api",
+  "order": 2,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "GET",
+        "url": "/pedidos",
+        "query": {
+          "status": "aguardando_pagamento"
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Pedidos",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "pedidos": [
+          {
+            "id": "string",
+            "status": "aguardando_pagamento",
+            "itens": [
+              {
+                "produtoId": "string",
+                "quantidade": 0,
+                "precoCentavos": 0
+              }
+            ],
+            "cep": "string",
+            "subtotalCentavos": 0,
+            "freteCentavos": 0,
+            "totalCentavos": 0,
+            "transportadora": "transnorte",
+            "criadoEm": "2024-01-01T00:00:00Z",
+            "motivoCancelamento": "string"
+          }
+        ]
+      },
+      "schema": {
+        "type": "object",
+        "required": [
+          "pedidos"
+        ],
+        "properties": {
+          "pedidos": {
+            "type": "array",
+            "items": {
+              "$ref": "schema:Pedido"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

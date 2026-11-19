@@ -1,0 +1,20 @@
+{
+  "name": "@vvpost/plugin-sdk",
+  "version": "1.0.0",
+  "description": "Plugin SDK do VVPost: tipos da API de plugins (apiVersion 1), definePlugin e PluginError. Guia em docs/plugins.md.",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ]
+}

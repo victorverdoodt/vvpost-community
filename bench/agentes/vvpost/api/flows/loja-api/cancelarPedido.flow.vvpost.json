@@ -1,0 +1,94 @@
+{
+  "$schema": "https://vvpost.dev/schemas/v1/flow.json",
+  "id": "loja-api.cancelarPedido",
+  "name": "Cancela um pedido ainda não enviado",
+  "extends": "loja-api",
+  "order": 5,
+  "nodes": [
+    {
+      "id": "request",
+      "name": "Request",
+      "type": "request",
+      "request": {
+        "method": "POST",
+        "url": "/pedidos/{id}/cancelamento",
+        "body": {
+          "motivo": "string"
+        },
+        "bodySchema": {
+          "type": "object",
+          "properties": {
+            "motivo": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "id": "ok-200",
+      "name": "200 Pedido cancelado",
+      "status": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "id": "string",
+        "status": "aguardando_pagamento",
+        "itens": [
+          {
+            "produtoId": "string",
+            "quantidade": 0,
+            "precoCentavos": 0
+          }
+        ],
+        "cep": "string",
+        "subtotalCentavos": 0,
+        "freteCentavos": 0,
+        "totalCentavos": 0,
+        "transportadora": "transnorte",
+        "criadoEm": "2024-01-01T00:00:00Z",
+        "motivoCancelamento": "string"
+      },
+      "schema": {
+        "$ref": "schema:Pedido"
+      }
+    },
+    {
+      "id": "erro-404",
+      "name": "404 Erro com código estável",
+      "status": 404,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "erro": {
+          "codigo": "string",
+          "mensagem": "string"
+        }
+      },
+      "schema": {
+        "$ref": "schema:Erro"
+      }
+    },
+    {
+      "id": "erro-409",
+      "name": "409 Erro com código estável",
+      "status": 409,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "erro": {
+          "codigo": "string",
+          "mensagem": "string"
+        }
+      },
+      "schema": {
+        "$ref": "schema:Erro"
+      }
+    }
+  ]
+}

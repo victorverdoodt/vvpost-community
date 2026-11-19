@@ -1,0 +1,222 @@
+openapi: 3.1.0
+info:
+  title: Loja API
+  version: 1.3.0
+  description: API de pedidos da Loja. Calcula o frete com as transportadoras parceiras.
+servers:
+  - url: https://api.loja.example
+    description: Produção
+  - url: http://localhost:3000
+    description: Local
+security:
+  - apiKey: []
+paths:
+  /produtos:
+    get:
+      operationId: listarProdutos
+      summary: Lista os produtos à venda
+      responses:
+        '200':
+          description: Produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [produtos]
+                properties:
+                  produtos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Produto'
+  /pedidos:
+    get:
+      operationId: listarPedidos
+      summary: Lista os pedidos
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filtra pelo status do pedido
+          schema:
+            $ref: '#/components/schemas/StatusPedido'
+      responses:
+        '200':
+          description: Pedidos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pedidos]
+                properties:
+                  pedidos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pedido'
+    post:
+      operationId: criarPedido
+      summary: Cria um pedido e cota o frete
+      description: >-
+        Soma os itens, cota o frete com a TransNorte e, se ela não responder, com a EntregaJá.
+        Sem nenhuma cotação, devolve 503.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovoPedido'
+            example:
+              itens:
+                - produtoId: p-100
+                  quantidade: 2
+              cep: 01310-100
+      responses:
+        '201':
+          description: Pedido criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+              example:
+                id: ped-1001
+                status: aguardando_pagamento
+                itens:
+                  - produtoId: p-100
+                    quantidade: 2
+                    precoCentavos: 4990
+                cep: '01310100'
+                subtotalCentavos: 9980
+                freteCentavos: 1990
+                totalCentavos: 11970
+                transportadora: transnorte
+                criadoEm: '2026-03-01T12:00:00.000Z'
+        '400':
+          $ref: '#/components/responses/Erro'
+        '422':
+          $ref: '#/components/responses/Erro'
+        '503':
+          $ref: '#/components/responses/Erro'
+  /pedidos/{id}:
+    get:
+      operationId: obterPedido
+      summary: Um pedido
+      parameters:
+        - $ref: '#/components/parameters/IdPedido'
+      responses:
+        '200':
+          description: Pedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+        '404':
+          $ref: '#/components/responses/Erro'
+  /pedidos/{id}/cancelamento:
+    post:
+      operationId: cancelarPedido
+      summary: Cancela um pedido ainda não enviado
+      parameters:
+        - $ref: '#/components/parameters/IdPedido'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                motivo:
+                  type: string
+      responses:
+        '200':
+          description: Pedido cancelado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pedido'
+        '404':
+          $ref: '#/components/responses/Erro'
+        '409':
+          $ref: '#/components/responses/Erro'
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Chave do canal de venda, em LOJA_API_KEY
+  parameters:
+    IdPedido:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^ped-\d+$'
+  responses:
+    Erro:
+      description: Erro com código estável
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+  schemas:
+    Produto:
+      type: object
+      required: [id, nome, precoCentavos, pesoGramas]
+      properties:
+        id: { type: string }
+        nome: { type: string }
+        precoCentavos: { type: integer }
+        pesoGramas: { type: integer }
+    StatusPedido:
+      type: string
+      enum: [aguardando_pagamento, pago, enviado, cancelado]
+    NovoPedido:
+      type: object
+      required: [itens, cep]
+      properties:
+        itens:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [produtoId]
+            properties:
+              produtoId: { type: string }
+              quantidade: { type: integer, minimum: 1, default: 1 }
+        cep:
+          type: string
+          pattern: '^\d{5}-?\d{3}$'
+          description: CEP de entrega, com ou sem hífen
+    Pedido:
+      type: object
+      required: [id, status, itens, cep, subtotalCentavos, freteCentavos, totalCentavos, transportadora, criadoEm]
+      properties:
+        id: { type: string }
+        status: { $ref: '#/components/schemas/StatusPedido' }
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              produtoId: { type: string }
+              quantidade: { type: integer }
+              precoCentavos: { type: integer }
+        cep: { type: string, description: CEP de entrega só com dígitos }
+        subtotalCentavos: { type: integer }
+        freteCentavos: { type: integer }
+        totalCentavos: { type: integer }
+        transportadora:
+          type: string
+          enum: [transnorte, entregaja]
+        criadoEm: { type: string, format: date-time }
+        motivoCancelamento: { type: [string, 'null'] }
+    Erro:
+      type: object
+      required: [erro]
+      properties:
+        erro:
+          type: object
+          required: [codigo, mensagem]
+          properties:
+            codigo: { type: string }
+            mensagem: { type: string }

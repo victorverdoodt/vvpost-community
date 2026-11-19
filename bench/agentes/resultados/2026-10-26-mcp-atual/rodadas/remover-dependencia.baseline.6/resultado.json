@@ -1,0 +1,115 @@
+{
+  "rodada": "remover-dependencia.baseline.6",
+  "tarefa": "remover-dependencia",
+  "variante": "baseline",
+  "n": 6,
+  "inicio": "2026-10-26T13:27:59.305Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 32,
+  "passos": 31,
+  "passosMcp": 0,
+  "errosDeFerramenta": 3,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Grep": 2,
+    "Bash": 8,
+    "Write": 2,
+    "Read": 1,
+    "Edit": 18
+  },
+  "tokens": {
+    "entrada": 26,
+    "escritaCache": 25844,
+    "leituraCache": 345274,
+    "saida": 11334,
+    "total": 382478
+  },
+  "custoUsd": 0.2512954,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.2512954
+  },
+  "duracaoMs": 76546,
+  "terminou": true,
+  "homolog": {
+    "porta": 40577,
+    "chave": "hk-3c6a26dd7d30f9c20f9640b3",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Removi a integração com a EntregaJá, e o frete agora é cotado só pela TransNorte. Se ela falhar, o pedido é recusado com `503 FRETE_INDISPONIVEL`. Os 10 testes passavam antes do último ajuste, que foi só renomear um teste. Não rodei `npm test` de novo depois dele.\n\n**Código**\n- Apaguei `src/frete/entregaja.js`.\n- `criarFrete` em `src/frete/index.js` aceita um único `provedor` (padrão: TransNorte) em vez da lista `provedores`. O erro da TransNorte sobe como está, e `src/pedidos.js` continua convertendo em 503.\n\n**Testes**\n- `test/frete.test.js`: tirei os testes da EntregaJá, do fallback e da lista de erros. Entraram dois testes: cota com a TransNorte e propaga a falha dela.\n- `test/pedidos.test.js`: renomeei o teste do 503 para \"quando a TransNorte não cota\".\n\n**Documentação**\n- Apaguei `openapi/entregaja.yaml`.\n- Em `openapi/loja.yaml`, o enum de `transportadora` agora é só `[transnorte]`, e a descrição do `POST /pedidos` foi atualizada.\n- Atualizei `README.md`, `CLAUDE.md`, `docs/arquitetura.md` (texto, diagrama e tabela de componentes), `docs/frete.md` (fluxo e as variáveis `ENTREGAJA_URL` e `ENTREGAJA_TOKEN`) e `docs/guia-de-integracao.md`.\n- Uma busca final não achou mais nenhuma menção à EntregaJá. As únicas ocorrências de \"reserva\" são as frases que dizem que não há reserva.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "rodada": "alterar-endpoint.baseline.2",
+  "tarefa": "alterar-endpoint",
+  "variante": "baseline",
+  "n": 2,
+  "inicio": "2026-10-26T13:19:25.934Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write"
+  ],
+  "mcp": [],
+  "turnos": 12,
+  "passos": 11,
+  "passosMcp": 0,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 7,
+    "Edit": 4
+  },
+  "tokens": {
+    "entrada": 14,
+    "escritaCache": 18248,
+    "leituraCache": 157680,
+    "saida": 4117,
+    "total": 180059
+  },
+  "custoUsd": 0.12995800000000002,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.12995800000000002
+  },
+  "duracaoMs": 35915,
+  "terminou": true,
+  "homolog": {
+    "porta": 36197,
+    "chave": "hk-66417f37eca8ed20d6fb8008",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "No `POST /pedidos`, o campo agora é `cepEntrega`, com as mesmas regras e ainda obrigatório. O pedido devolvido traz `cepEntrega` no lugar de `cep` e passa a ter `prazoEntregaDias`. Os 11 testes passam. Não testei contra a API de homologação.\n\n- **Código (`src/pedidos.js`):**\n  - Valida e lê `entrada.cepEntrega`, e o erro continua `400 CEP_INVALIDO`.\n  - `prazoEntregaDias` recebe o prazo que a transportadora devolveu na cotação.\n- **Testes (`test/pedidos.test.js`):** usam `cepEntrega`, e o teste de criação confere `prazoEntregaDias`.\n- **Documentação:**\n  - `openapi/loja.yaml` e `docs/guia-de-integracao.md` têm o novo nome e o novo campo, nos schemas, nos exemplos e nas listas de campos obrigatórios.\n  - `docs/frete.md` cita `cepEntrega` e explica o prazo.\n- **O que ficou como `cep`:** as chamadas às transportadoras (`cepDestino` na TransNorte e `?cep=` na EntregaJá) não mudaram. Eu só fiz grep em `src`, `test`, `docs`, `openapi/loja.yaml` e `README.md`.\n\nO prazo vem em unidades diferentes conforme a transportadora: dias úteis na TransNorte e dias corridos na EntregaJá. Deixei isso escrito na descrição do campo e em `docs/frete.md`.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

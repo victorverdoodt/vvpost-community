@@ -1,0 +1,148 @@
+{
+  "rodada": "novo-endpoint.vvpost.4",
+  "tarefa": "novo-endpoint",
+  "variante": "vvpost",
+  "n": 4,
+  "inicio": "2026-10-26T13:24:13.183Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 23,
+  "passos": 22,
+  "passosMcp": 6,
+  "errosDeFerramenta": 1,
+  "ferramentasComErro": [
+    "Bash"
+  ],
+  "negadas": [
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 6,
+    "ToolSearch": 1,
+    "mcp__vvpost__get_api_catalog": 1,
+    "mcp__vvpost__get_source": 2,
+    "mcp__vvpost__get_docs_project": 1,
+    "mcp__vvpost__execute_dry_run": 1,
+    "Edit": 9,
+    "mcp__vvpost__edit_project": 1
+  },
+  "tokens": {
+    "entrada": 20,
+    "escritaCache": 38446,
+    "leituraCache": 347450,
+    "saida": 10227,
+    "total": 396143
+  },
+  "custoUsd": 0.290839,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.290839
+  },
+  "duracaoMs": 97148,
+  "terminou": true,
+  "homolog": {
+    "porta": 34481,
+    "chave": "hk-d8f1edbfc24eed49cf12f4fa",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "O endpoint `GET /pedidos/{id}/rastreio` está pronto e a documentação foi atualizada. A suíte (`npm test`) passa com 16 testes. Não consegui chamar a TransNorte de verdade: o `execute_dry_run` no `homolog` falhou porque o segredo `TRANSNORTE_API_KEY` não tem valor no cofre local.\n\n**Código**\n- `src/frete/transnorte.js`: novo método `rastrear(codigo)` chama `GET /rastreamentos/{codigo}` com a chave em `X-Api-Key`. Devolve o corpo da TransNorte como veio, ou `null` se ela responde 404. Qualquer outro erro dela vira exceção.\n- `src/app.js`: a nova rota usa o id do pedido como código. Pedido inexistente devolve `404 PEDIDO_NAO_ENCONTRADO` sem consultar a TransNorte. Código desconhecido para ela devolve `404 RASTREIO_NAO_ENCONTRADO`.\n- `criarApp` aceita agora uma opção `rastreio`, que por padrão é o cliente da TransNorte. Os testes usam isso para trocar o cliente por um falso.\n\n**Fora do que você pediu:** se a TransNorte falhar de outro jeito (erro HTTP ou rede), a rota devolve `503 RASTREIO_INDISPONIVEL`. Você não especificou esse caso e escolhi esse código.\n\n**Testes**\n- `test/pedidos.test.js`: quatro casos novos, para sucesso, pedido inexistente, rastreio desconhecido e 503.\n- `test/frete.test.js`: um caso para o cliente da TransNorte (URL, chave, 404 vira `null`, 500 lança erro).\n- `test/apoio.js`: o `rastreioFalso`, usado nos testes novos.\n\n**Documentação no VVPost** (um `edit_project`, sem `documentErrors` nem `stalePdf`, então não exportei o PDF)\n- Catálogo: endpoint `loja-api/rastrearPedido` com exemplos de 200, 404 e 503. Criei também o schema compartilhado `Rastreio`. A descrição do conector `transnorte` agora cita o rastreio.\n- `docs/guia-de-integracao.md`: nova seção \"Rastrear um pedido\", com a diretiva do endpoint e os erros.\n- `docs/arquitetura.md`: o diagrama, a tabela de componentes e a linha de rotas citam o rastreio.\n\nNão fiz commit.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

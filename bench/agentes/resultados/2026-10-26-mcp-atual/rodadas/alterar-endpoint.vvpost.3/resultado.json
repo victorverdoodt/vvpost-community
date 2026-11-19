@@ -1,0 +1,154 @@
+{
+  "rodada": "alterar-endpoint.vvpost.3",
+  "tarefa": "alterar-endpoint",
+  "variante": "vvpost",
+  "n": 3,
+  "inicio": "2026-10-26T13:21:27.997Z",
+  "saidaCli": 0,
+  "claudeCode": "2.1.310",
+  "modelo": "claude-sonnet-5-5",
+  "ferramentasDisponiveis": [
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "ListMcpResourcesTool",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "ReadMcpResourceDirTool",
+    "ReadMcpResourceTool",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskCreate",
+    "TaskGet",
+    "TaskList",
+    "TaskStop",
+    "TaskUpdate",
+    "ToolSearch",
+    "Workflow",
+    "Write",
+    "mcp__vvpost__create_project",
+    "mcp__vvpost__edit_project",
+    "mcp__vvpost__execute_dry_run",
+    "mcp__vvpost__execute_flow",
+    "mcp__vvpost__export_docs",
+    "mcp__vvpost__export_project",
+    "mcp__vvpost__find_references",
+    "mcp__vvpost__generate_docs",
+    "mcp__vvpost__get_api_catalog",
+    "mcp__vvpost__get_docs_project",
+    "mcp__vvpost__get_schema",
+    "mcp__vvpost__get_source",
+    "mcp__vvpost__get_webhook_event",
+    "mcp__vvpost__import_bundle",
+    "mcp__vvpost__import_collection",
+    "mcp__vvpost__import_openapi",
+    "mcp__vvpost__import_postman",
+    "mcp__vvpost__install_agent_rules",
+    "mcp__vvpost__list_projects",
+    "mcp__vvpost__list_webhook_events",
+    "mcp__vvpost__replace_references",
+    "mcp__vvpost__save_docs_project",
+    "mcp__vvpost__save_docs_template",
+    "mcp__vvpost__validate_body",
+    "mcp__vvpost__write_docs_page"
+  ],
+  "mcp": [
+    {
+      "name": "vvpost",
+      "status": "connected",
+      "source": "dynamic"
+    }
+  ],
+  "turnos": 18,
+  "passos": 17,
+  "passosMcp": 2,
+  "errosDeFerramenta": 5,
+  "ferramentasComErro": [
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "negadas": [
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "porFerramenta": {
+    "Bash": 10,
+    "ToolSearch": 1,
+    "mcp__vvpost__find_references": 1,
+    "mcp__vvpost__edit_project": 1,
+    "Edit": 3,
+    "Read": 1
+  },
+  "tokens": {
+    "entrada": 24,
+    "escritaCache": 27730,
+    "leituraCache": 372632,
+    "saida": 4166,
+    "total": 404552
+  },
+  "custoUsd": 0.18989119999999998,
+  "custoPorModelo": {
+    "claude-sonnet-5-5": 0.18989119999999998
+  },
+  "duracaoMs": 55486,
+  "terminou": true,
+  "homolog": {
+    "porta": 39453,
+    "chave": "hk-3fcdef95d2b5532de5ab1ee7",
+    "esperado": {
+      "quantidade": 4,
+      "totalCentavos": 89398
+    }
+  },
+  "resposta": "Não consegui rodar os testes: o `npm test` pediu aprovação e não foi liberado. O resto da tarefa está feito.\n\n**Código** (`src/pedidos.js`)\n- O POST `/pedidos` agora lê e valida `cepEntrega`, com a mesma regra de antes e ainda obrigatório.\n- O pedido devolvido traz `cepEntrega` no lugar de `cep` e ganhou `prazoEntregaDias`, que vem do `prazoDias` da cotação da transportadora.\n- Mantive `cepDestino` nos clientes de frete e na chamada interna `frete.cotar`, porque é o contrato com a TransNorte e a EntregaJá.\n\n**Testes** (`test/pedidos.test.js`)\n- Todas as chamadas usam `cepEntrega`.\n- O teste de criação confere `prazoEntregaDias` igual a 4.\n\n**Documentação (VVPost)**\n- Uma única chamada `edit_project` fez as mudanças do catálogo.\n- Os schemas `NovoPedido` e `Pedido` e os exemplos dos fluxos de criar, obter, listar e cancelar pedido trocaram `cep` por `cepEntrega`.\n- `prazoEntregaDias` entrou no schema `Pedido` como inteiro obrigatório, com o valor 4 preenchido nos exemplos.\n- O texto do guia de integração (`docs/guia-de-integracao.md`) foi atualizado.\n- A resposta não trouxe `stalePdf` nem `documentErrors`, então não exportei o PDF.\n- Deixei de fora os campos `cep` e `cepDestino` dos fluxos da TransNorte e da EntregaJá, que são APIs de terceiros.\n\nPara fechar, falta rodar `npm test`.",
+  "qualidade": {
+    "ok": true,
+    "nota": 1,
+    "credencialExposta": false,
+    "criterios": {
+      "testes": {
+        "ok": true,
+        "falhas": []
+      },
+      "aceite": {
+        "ok": true,
+        "falhas": []
+      },
+      "valido": {
+        "ok": true,
+        "falhas": []
+      },
+      "api": {
+        "ok": true,
+        "falhas": []
+      },
+      "docs": {
+        "ok": true,
+        "falhas": []
+      },
+      "credencial": {
+        "ok": true,
+        "falhas": []
+      }
+    }
+  }
+}

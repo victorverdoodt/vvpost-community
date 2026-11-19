@@ -1,0 +1,144 @@
+openapi: 3.0.3
+info:
+  title: Loja de Pets
+  version: '1.2'
+  description: API de exemplo para o importador.
+servers:
+  - url: https://{region}.pets.example.com/v1
+    variables:
+      region:
+        default: sa
+  - url: https://sandbox.pets.example.com/v1
+security:
+  - token: []
+tags:
+  - name: Pets
+    description: Cadastro de pets.
+  - name: Tutores
+paths:
+  /pets:
+    get:
+      tags: [Pets]
+      operationId: listPets
+      summary: Listar pets
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: status
+          in: query
+          required: true
+          schema: { type: string, enum: [available, sold] }
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/TraceId'
+      responses:
+        '200': { description: ok }
+    post:
+      tags: [Pets]
+      operationId: createPet
+      summary: Cadastrar pet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NewPet' }
+      responses:
+        '201': { description: criado }
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pets]
+      operationId: getPet
+      summary: Buscar pet
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NewPet' }
+        '404':
+          description: Pet não encontrado
+          content:
+            application/json:
+              examples:
+                sumiu: { summary: Apagado, value: { error: NOT_FOUND } }
+    delete:
+      tags: [Pets]
+      operationId: deletePet
+      deprecated: true
+      description: Use o arquivamento.
+      responses:
+        '204': { description: apagado }
+  /pets/{petId}/photo:
+    put:
+      tags: [Pets]
+      operationId: uploadPhoto
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                caption: { type: string, example: Rex no parque }
+                featured: { type: boolean }
+                file: { type: string, format: binary }
+      responses:
+        '200': { description: ok }
+  /owners:
+    post:
+      tags: [Tutores]
+      operationId: createOwner
+      requestBody:
+        content:
+          application/json:
+            example: { name: Ana, pets: [] }
+            schema: { $ref: '#/components/schemas/Owner' }
+      responses:
+        '201': { description: criado }
+  /health:
+    get:
+      operationId: health
+      security: []
+      responses:
+        '200': { description: ok }
+components:
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+  parameters:
+    TraceId:
+      name: X-Trace-Id
+      in: header
+      example: abc-123
+  schemas:
+    NewPet:
+      type: object
+      required: [name]
+      properties:
+        id: { type: string, readOnly: true }
+        name: { type: string, example: Rex }
+        birth: { type: string, format: date }
+        weight: { type: number, minimum: 0, exclusiveMinimum: true }
+        nickname: { type: string, nullable: true }
+        owner: { $ref: '#/components/schemas/Owner' }
+    Owner:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        pets:
+          type: array
+          items: { $ref: '#/components/schemas/NewPet' }
