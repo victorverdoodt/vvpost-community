@@ -1,10 +1,12 @@
 // Fora do index do design system: marked, DOMPurify e Mermaid só entram nos chunks dos
 // módulos que mostram documentação (Catálogo e a documentação rica), nunca no cold start.
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { splitFlowchart } from '@vvpost/core/docs/mermaid-split'
 import { markdownWithLines } from './markdown-lines'
+import { DIAGRAM_CACHE_LIMIT, LruCache, wrapTables } from './lazy-content'
+import { keepHeight, watchDiagram } from './lazy-diagrams'
 
 type MermaidApi = (typeof import('mermaid'))['default']
 type IconPack = Parameters<MermaidApi['registerIconPacks']>[0][number] & {
@@ -75,6 +77,7 @@ const getMermaid = async () => {
 /** Lê de novo os ícones dos plugins (ligou ou desligou um plugin): vale a partir do próximo diagrama. */
 export function reloadDiagramIcons(): void {
   iconPacks = null
+  drawn.clear()
 }
 
 let diagramCount = 0
@@ -92,6 +95,20 @@ export async function renderMermaid(source: string): Promise<{ svg: string } | {
     // Com erro, o Mermaid deixa o rascunho do SVG solto no body.
     document.getElementById(`d${id}`)?.remove()
   }
+}
+
+/** SVGs da visualização por fonte (lazy-diagrams.ts): voltar a um diagrama não roda o Mermaid de novo. */
+const drawn = new LruCache<string, Promise<{ svg: string } | { error: string }>>(DIAGRAM_CACHE_LIMIT)
+
+/** renderMermaid com o cache da visualização; um pedido igual em andamento é o mesmo. */
+function drawDiagram(source: string): Promise<{ svg: string } | { error: string }> {
+  const hit = drawn.get(source)
+  if (hit) return hit
+  const promise = renderMermaid(source)
+  drawn.set(source, promise)
+  // Erro não fica no cache: um ícone de plugin que faltava pode chegar depois.
+  void promise.then((r) => 'error' in r && drawn.delete(source))
+  return promise
 }
 
 /**
@@ -199,46 +216,73 @@ export function Markdown({ source, className = '', lines = false }: { source: st
   const editRef = useRef(edit)
   editRef.current = edit
   // lines: cada bloco leva a linha do texto (data-line), para o editor ligar a prévia ao texto.
+  // As tabelas vão num div.md-table, onde o content-visibility (styles.css) poupa as que estão fora da tela.
   const html = useMemo(
-    () => DOMPurify.sanitize(lines ? markdownWithLines(source) : (marked.parse(source, { async: false, gfm: true }) as string)),
+    () =>
+      wrapTables(DOMPurify.sanitize(lines ? markdownWithLines(source) : (marked.parse(source, { async: false, gfm: true }) as string))),
     [source, lines]
   )
 
+  // Cada ```mermaid vira um lugar reservado que só ganha o SVG perto da tela (lazy-diagrams.ts).
   useEffect(() => {
     const root = ref.current
     if (!root) return
-    let cancelled = false
+    const stops: (() => void)[] = []
     let n = 0
     for (const code of root.querySelectorAll<HTMLElement>('pre > code.language-mermaid')) {
       const pre = code.parentElement!
       const text = code.textContent ?? ''
       const label = `Diagrama ${++n}`
-      void renderMermaid(text).then((result) => {
-        if (cancelled || !pre.isConnected) return
-        const figure = document.createElement('figure')
-        figure.className = 'mermaid-diagram'
-        if (pre.dataset.line) figure.dataset.line = pre.dataset.line
-        if ('svg' in result) {
-          figure.innerHTML = result.svg
-        } else {
-          figure.textContent = `Diagrama Mermaid inválido: ${result.error}`
-          figure.classList.add('mermaid-error')
-        }
-        if (editRef.current) {
-          const button = document.createElement('button')
-          button.type = 'button'
-          button.className = 'mermaid-edit'
-          button.textContent = 'Editar'
-          button.title = 'Abrir no editor de diagramas'
-          button.setAttribute('aria-label', `Editar ${label.toLowerCase()}`)
-          button.addEventListener('click', () => editRef.current?.(text, label))
-          figure.prepend(button)
-        }
-        pre.replaceWith(figure)
-      })
+      const figure = document.createElement('figure')
+      figure.className = 'mermaid-diagram mermaid-pending'
+      figure.setAttribute('aria-label', label)
+      if (pre.dataset.line) figure.dataset.line = pre.dataset.line
+      if (editRef.current) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'mermaid-edit'
+        button.textContent = 'Editar'
+        button.title = 'Abrir no editor de diagramas'
+        button.setAttribute('aria-label', `Editar ${label.toLowerCase()}`)
+        button.addEventListener('click', () => editRef.current?.(text, label))
+        figure.append(button)
+      }
+      const body = document.createElement('div')
+      body.className = 'mermaid-body'
+      figure.append(body)
+      pre.replaceWith(figure)
+      let visible = false
+      stops.push(
+        watchDiagram(figure, {
+          show() {
+            if (visible) return
+            visible = true
+            void drawDiagram(text).then((result) => {
+              if (!visible || !figure.isConnected) return
+              if ('svg' in result) {
+                body.innerHTML = result.svg
+                figure.classList.remove('mermaid-error')
+              } else {
+                body.textContent = `Diagrama Mermaid inválido: ${result.error}`
+                figure.classList.add('mermaid-error')
+              }
+              figure.classList.remove('mermaid-pending')
+              figure.style.minHeight = ''
+            })
+          },
+          hide() {
+            if (!visible) return
+            visible = false
+            if (!body.firstChild) return
+            keepHeight(figure)
+            body.replaceChildren()
+            figure.classList.add('mermaid-pending')
+          }
+        })
+      )
     }
     return () => {
-      cancelled = true
+      for (const stop of stops) stop()
     }
   }, [html])
 
@@ -256,17 +300,51 @@ export function Markdown({ source, className = '', lines = false }: { source: st
 export function MermaidDiagram({ source, label }: { source: string; label: string }) {
   const edit = useContext(DiagramEditContext)
   const [result, setResult] = useState<{ svg: string } | { error: string } | null>(null)
+  const slot = useRef<HTMLDivElement>(null)
+  // Só desenha perto da tela e solta o SVG longe dela, como os diagramas do Markdown (lazy-diagrams.ts).
   useEffect(() => {
-    let cancelled = false
+    const el = slot.current
+    if (!el) return
+    let visible = false
     setResult(null)
-    void renderMermaid(source).then((r) => {
-      if (!cancelled) setResult(r)
+    return watchDiagram(el, {
+      show() {
+        if (visible) return
+        visible = true
+        void drawDiagram(source).then((r) => {
+          if (visible) setResult(r)
+        })
+      },
+      hide() {
+        if (!visible) return
+        visible = false
+        keepHeight(el)
+        setResult(null)
+      }
     })
-    return () => {
-      cancelled = true
-    }
   }, [source])
+  useLayoutEffect(() => {
+    if (result && slot.current) slot.current.style.minHeight = ''
+  }, [result])
 
+  return (
+    <div ref={slot} className="mermaid-slot" data-diagram={label}>
+      <MermaidDiagramBody result={result} source={source} label={label} edit={edit} />
+    </div>
+  )
+}
+
+function MermaidDiagramBody({
+  result,
+  source,
+  label,
+  edit
+}: {
+  result: { svg: string } | { error: string } | null
+  source: string
+  label: string
+  edit: ((code: string, label: string) => void) | null
+}) {
   if (!result) return <div className="text-xs text-muted">Desenhando {label}…</div>
   if ('error' in result) {
     return (

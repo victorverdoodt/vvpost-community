@@ -165,7 +165,10 @@ try {
     'Sequência de Efetuar Cobrança',
     'Fluxo Checkout'
   ]) {
-    await article.getByRole('img', { name }).locator('svg').waitFor()
+    // Os diagramas só são desenhados perto da tela (lazy-diagrams.ts): rola até cada um.
+    const slot = article.locator(`[data-diagram="${name}"]`)
+    await slot.scrollIntoViewIfNeeded()
+    await slot.getByRole('img', { name }).locator('svg').waitFor()
   }
   // Herança com a origem, schema, cenários e asserções, a documentação escrita.
   const effective = article.getByRole('table', { name: 'Configuração efetiva de Billing Service v2' })
