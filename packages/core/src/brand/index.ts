@@ -20,3 +20,4 @@ export {
   type Rgba
 } from './tokens'
 export { docsUsesTokens, fontStack, loadDocsBrand, resolveDocsBrand, type DocsBrandResult, type DocsBrandTheme } from './docs-theme'
+export { brandCodeFindings, brandRoot, listBrandFiles, readBrandFile, writeBrandFile, type BrandFileView, type BrandTokenView } from './files'

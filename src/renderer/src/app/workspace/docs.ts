@@ -1,6 +1,6 @@
 /**
  * Documentos que abrem numa aba própria do workspace: o editor da aba muda pelo tipo do arquivo
- * (conector, endpoint, cenário, documento .md, diagrama .mmd). Fluxos e requisições abrem nas abas
+ * (conector, endpoint, cenário, documento .md, diagrama .mmd, tokens da marca). Fluxos e requisições abrem nas abas
  * do Flow Studio e do Quick Request (lib/shell-tabs); ambientes, no módulo Secrets.
  */
 export type DocRef =
@@ -13,6 +13,8 @@ export type DocRef =
   | { kind: 'markdown'; file: string; section?: string }
   /** file null: diagrama novo, ainda sem arquivo. */
   | { kind: 'diagram'; file: string | null }
+  /** Arquivo de tokens da marca (brand/*.tokens.json), relativo ao projeto. */
+  | { kind: 'brand'; file: string }
 
 export type DocKind = DocRef['kind']
 
@@ -33,6 +35,8 @@ export function docKey(ref: DocRef): string {
       return `doc:markdown:${ref.file}`
     case 'diagram':
       return `doc:diagram:${ref.file ?? `new-${++fresh}`}`
+    case 'brand':
+      return `doc:brand:${ref.file}`
   }
 }
 
@@ -56,6 +60,8 @@ export function docTitle(
       return base(ref.file)
     case 'diagram':
       return ref.file ? base(ref.file) : 'Novo diagrama'
+    case 'brand':
+      return base(ref.file)
   }
 }
 

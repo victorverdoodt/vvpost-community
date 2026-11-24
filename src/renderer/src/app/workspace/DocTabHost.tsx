@@ -8,6 +8,7 @@ const EndpointTab = lazy(() => import('./editors/EndpointTab'))
 const ScenarioTab = lazy(() => import('./editors/ScenarioTab'))
 const MarkdownTab = lazy(() => import('./editors/MarkdownTab'))
 const DiagramTab = lazy(() => import('./editors/DiagramTab'))
+const BrandTab = lazy(() => import('./editors/BrandTab'))
 
 /** O editor da aba pelo tipo do documento. Fica montado enquanto a aba existe (o texto não salvo sobrevive). */
 export const DocTabHost = memo(function DocTabHost(props: {
@@ -45,6 +46,7 @@ export const DocTabHost = memo(function DocTabHost(props: {
           )}
           {d.kind === 'markdown' && <MarkdownTab file={d.file} tab={tab} />}
           {d.kind === 'diagram' && <DiagramTab file={d.file} tab={tab} />}
+          {d.kind === 'brand' && <BrandTab file={d.file} tab={tab} />}
         </Suspense>
       </PanelActiveContext.Provider>
     </div>

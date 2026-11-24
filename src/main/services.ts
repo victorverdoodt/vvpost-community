@@ -1775,8 +1775,44 @@ export function docsFiles(): Promise<WorkspaceResult<DocsFileList>> {
     const dir = await currentWorkspaceDir()
     if (!dir) throw new Error('Nenhum workspace aberto.')
     const docs = await getDocs()
-    const [files, project] = await Promise.all([docs.listDocsFiles(dir), docs.loadDocsProject(dir)])
-    return { markdown: files.markdown.map((f) => f.file), diagrams: files.diagrams, sourceFile: project.sourceFile }
+    const [files, project, brand] = await Promise.all([
+      docs.listDocsFiles(dir),
+      docs.loadDocsProject(dir),
+      import('@vvpost/core/brand').then((b) => b.listBrandFiles(dir)).catch(() => [] as string[])
+    ])
+    return { markdown: files.markdown.map((f) => f.file), diagrams: files.diagrams, sourceFile: project.sourceFile, brand }
+  })
+}
+
+/** Um arquivo de tokens da marca para a aba própria (só os da lista do projeto). */
+export function readBrandFile(file: unknown): Promise<WorkspaceResult<import('@vvpost/core/brand').BrandFileView>> {
+  return attempt(async () => {
+    const dir = await currentWorkspaceDir()
+    if (!dir) throw new Error('Nenhum workspace aberto.')
+    return (await import('@vvpost/core/brand')).readBrandFile(dir, String(file ?? ''))
+  })
+}
+
+/** O código do frontend contra os tokens, sob pedido da aba (pode ler milhares de arquivos). */
+export function brandFindings(): Promise<WorkspaceResult<{ items: import('@vvpost/core/brand').BrandItem[]; scanned: number }>> {
+  return attempt(async () => {
+    const dir = await currentWorkspaceDir()
+    if (!dir) throw new Error('Nenhum workspace aberto.')
+    return (await import('@vvpost/core/brand')).brandCodeFindings(dir)
+  })
+}
+
+/** Grava o arquivo de tokens da aba: JSON válido, sem segredo do workspace, sem sobrescrever mudança feita fora. */
+export function saveBrandFile(input: unknown): Promise<WorkspaceResult<{ file: string }>> {
+  return attempt(async () => {
+    const i = input as { file?: unknown; text?: unknown; previous?: unknown } | null
+    if (!i || typeof i.file !== 'string' || typeof i.text !== 'string') throw new Error('arquivo de tokens inválido')
+    const dir = await currentWorkspaceDir()
+    if (!dir) throw new Error('Nenhum workspace aberto.')
+    const [brand, { createSecretSanitizer }, ws] = await Promise.all([import('@vvpost/core/brand'), import('@vvpost/core/sanitizer'), loadCatalog({ fresh: true })])
+    const sanitizer = createSecretSanitizer()
+    sanitizer.addWorkspace(ws)
+    return brand.writeBrandFile(dir, { file: i.file, text: i.text, ...(typeof i.previous === 'string' && { previous: i.previous }) }, (t) => sanitizer.leaks(t))
   })
 }
 
