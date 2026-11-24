@@ -52,6 +52,7 @@ ruleset do time troca.
 | `brand-hardcoded-color` | aviso | Cor escrita à mão no código que é o valor de um token; o `hint` diz como usar o token. |
 | `brand-unknown-color` | aviso | Cor escrita à mão que não é da marca; o `hint` diz o token mais próximo. |
 | `brand-font` | aviso | `font-family` ou `fontFamily` fora das fontes dos tokens. |
+| `brand-spacing` | aviso | `margin`, `padding` ou `gap` em px/rem fora da escala de espaçamento dos tokens; o `hint` diz o valor mais perto. |
 | `c4-element-ambiguous` | dica | Elemento do C4 com o nome de mais de um item do catálogo. |
 | `path-params-camel-case` | desligada | Parâmetros do caminho em camelCase (`{pedidoId}`). |
 | `name-capitalized` | desligada | Nomes de conector, endpoint, cenário, fluxo e ambiente começando com maiúscula. |
