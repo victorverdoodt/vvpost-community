@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import type { Connector } from '@vvpost/schemas'
 import type { HttpRequestInput, HttpResult } from '@shared/ipc'
 import { createAuthEngine, type AuthEngine } from '@vvpost/core/connectors/auth'
-import { sendHeadless } from '@vvpost/core/connectors/headless'
+import { anonymousRequest, sendHeadless } from '@vvpost/core/connectors/headless'
 import { resolveConnector } from '@vvpost/core/connectors/resolve'
 import { summarizeWorkspace } from '@vvpost/core/connectors/summary'
 import { interpolate, totp } from '@vvpost/core/connectors/template'
@@ -74,6 +74,25 @@ describe('herança de conectores', () => {
   it('auth none no filho desliga a do pai', () => {
     const child: Connector = { id: 'c', name: 'C', version: '1.0.0', extends: 'base', config: { auth: { type: 'none' } } }
     expect(resolveConnector('c', catalog(base, child)).auth).toBeUndefined()
+  })
+
+  it('Quick Request num endpoint público vai sem credencial, a menos que a aba peça a auth', () => {
+    const api: Connector = {
+      ...base,
+      id: 'api',
+      endpoints: [
+        { id: 'status', name: 'Status', method: 'GET', path: '/status', requiresAuth: false },
+        { id: 'conta', name: 'Conta', method: 'GET', path: '/conta', requiresAuth: true },
+        { id: 'livre', name: 'Livre', method: 'GET', path: '/livre' }
+      ]
+    }
+    const ws = { connectors: catalog(api) }
+    expect(anonymousRequest({ connectorId: 'api', endpointId: 'status' }, ws)).toBe(true)
+    expect(anonymousRequest({ connectorId: 'api', endpointId: 'status', withAuth: true }, ws)).toBe(false)
+    expect(anonymousRequest({ connectorId: 'api', endpointId: 'conta' }, ws)).toBe(false)
+    expect(anonymousRequest({ connectorId: 'api', endpointId: 'livre' }, ws)).toBe(false)
+    expect(anonymousRequest({ connectorId: 'api' }, ws)).toBe(false)
+    expect(anonymousRequest({ connectorId: 'sumiu', endpointId: 'status' }, ws)).toBe(false)
   })
 
   it('aponta pai ausente e herança circular', () => {

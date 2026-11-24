@@ -370,6 +370,13 @@ async function dispatch(
   return { result, traced: t }
 }
 
+/** Endpoint público sem o pedido da auth: vai sem credencial (o histórico grava assim, e Reproduzir repete). */
+async function publicEndpoint(input: HttpRequestInput): Promise<boolean> {
+  if (input.withAuth || !input.connectorId || !input.endpointId) return false
+  const ws = await loadCatalog().catch(() => null)
+  return !!ws && (await getConnectors()).anonymousRequest(input, ws)
+}
+
 /**
  * Com preparação, o histórico guarda a requisição como digitada (com os {{ $nodes... }}) e o
  * fluxo, não os valores do fluxo daquela vez: reproduzir roda a preparação de novo.
@@ -380,7 +387,7 @@ function withPrepareTemplate(input: HttpRequestInput, recorded: RecordedExchange
 }
 
 export async function sendRequest(input: HttpRequestInput): Promise<HttpResult> {
-  const { result, traced: t } = await dispatch(input)
+  const { result, traced: t } = await dispatch(input, (await publicEndpoint(input)) ? { anonymous: true } : {})
   // Com scripts, a requisição é o nó Requisicao do fluxo (<id>:request), e o histórico guarda a
   // requisição como digitada, com os scripts: reproduzir roda os scripts de novo.
   const taken = t.recorder.take(input.id)

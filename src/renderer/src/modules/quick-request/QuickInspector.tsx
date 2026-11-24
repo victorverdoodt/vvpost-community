@@ -32,12 +32,17 @@ export function QuickInspector(props: {
   onDeleteHistory: (entry: HistoryRunSummary) => void
   onCopyHistory: (entry: HistoryRunSummary, as: 'url' | 'curl') => void
   onClearHistory: () => void
+  /** Endpoint público: manda (true) ou não a auth do conector. */
+  onWithAuth?: (withAuth: boolean) => void
 }) {
   const { draft, connector } = props
   const ctx = useContextMenu()
   const icon = { size: 14, 'aria-hidden': true } as const
   const endpoint = connector?.endpoints.find((e) => e.id === draft.endpointId)
   const lastAuth = draft.result?.auth
+  // Endpoint público: vai sem credencial, como no vvpost run, a menos que a aba peça a auth.
+  const isPublic = !!connector?.auth && endpoint?.requiresAuth === false && !endpoint.plugin
+  const anonymous = isPublic && !draft.withAuth
   const local = draft.headers.filter((h) => h.enabled && h.name.trim())
   const localNames = new Set(local.map((h) => h.name.trim().toLowerCase()))
   const inheritedNames = new Set(connector?.headers.map((h) => h.name.toLowerCase()))
@@ -56,8 +61,21 @@ export function QuickInspector(props: {
                 >
                   <span className="font-mono">{connector.auth.from}</span>
                 </Field>
+                {isPublic && (
+                  <>
+                    <p className="text-xs text-muted" role="note">
+                      {anonymous
+                        ? 'Endpoint público (requiresAuth: false): vai sem a auth do conector e sem os headers de credencial, como no vvpost run.'
+                        : 'Endpoint público, mas esta aba manda a auth do conector.'}
+                    </p>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={!!draft.withAuth} onChange={(e) => props.onWithAuth?.(e.target.checked)} />
+                      Enviar a auth mesmo assim
+                    </label>
+                  </>
+                )}
                 <Field label="Último envio">
-                  {lastAuth
+                  {anonymous && !lastAuth ? 'sem credencial' : lastAuth
                     ? lastAuth.source === 'cache'
                       ? 'token em cache'
                       : lastAuth.source === 'static'
