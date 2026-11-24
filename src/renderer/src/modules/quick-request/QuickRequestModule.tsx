@@ -224,6 +224,7 @@ export default function QuickRequestModule() {
               ...(!draft.prepareFlowId && draft.flow?.before?.nodes.length && { prepareFlow: draft.flow.before }),
               // O endpoint leva os scripts dele e os do conector para o envio.
               ...(connector && draft.endpointId && { endpointId: draft.endpointId }),
+              ...(connector && draft.endpointId && draft.withAuth && { withAuth: true }),
               ...(draftScripts(draft) && { scripts: draftScripts(draft) })
             })
       )
@@ -366,6 +367,7 @@ export default function QuickRequestModule() {
         binaryFile: src.binaryFile ?? '',
         binaryType: src.binaryType ?? '',
         endpointId: src.endpointId,
+        ...(src.withAuth && { withAuth: true }),
         prepareFlowId: src.prepareFlowId ?? null,
         ...(src.scripts && { scripts: { ...src.scripts } }),
         adapter: src.adapter ?? null,
@@ -639,6 +641,7 @@ export default function QuickRequestModule() {
               ...payloadDraft(endpoint.payload),
               ...(!endpoint.payload && graphqlDraft(endpoint.body)),
               endpointId: endpoint.id,
+              withAuth: false,
               disabledParams: [],
               // Endpoint de plugin (gRPC, Kafka...): a aba passa ao adapter com a config do arquivo.
               adapter: endpoint.plugin?.adapter ?? null,
@@ -714,6 +717,7 @@ export default function QuickRequestModule() {
           )
         }}
         onClearHistory={() => void window.vvpost.clearHistory().then(refreshHistory)}
+        onWithAuth={(withAuth) => update(active.id, { withAuth })}
       />
       {dialog.element}
     </div>

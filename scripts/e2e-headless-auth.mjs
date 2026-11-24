@@ -37,6 +37,8 @@ const server = createServer((req, res) => {
       tokenCalls++
       return res.end(JSON.stringify({ access_token: `tok-${tokenCalls}`, token_type: 'Bearer', expires_in: 3600 }))
     }
+    // Endpoint público: responde a qualquer um e devolve a auth que chegou (ou nenhuma).
+    if (req.url === '/billing/v2/status') return res.end(JSON.stringify({ auth: req.headers.authorization ?? null, tenant: req.headers['x-tenant'] }))
     if (req.headers.authorization !== `Bearer tok-${tokenCalls}`) {
       res.statusCode = 401
       return res.end(JSON.stringify({ error: 'unauthorized' }))
@@ -76,7 +78,10 @@ put('connectors/billing.connector.vvpost.json', {
   version: '2.0.0',
   extends: 'connector.corporate.base',
   config: { basePath: '/billing/v2' },
-  endpoints: [{ id: 'list_charges', name: 'Listar cobranças', method: 'GET', path: '/charges' }]
+  endpoints: [
+    { id: 'list_charges', name: 'Listar cobranças', method: 'GET', path: '/charges' },
+    { id: 'status', name: 'Status', method: 'GET', path: '/status', requiresAuth: false }
+  ]
 })
 put('environments/dev.env.json', {
   id: 'env.dev',
@@ -156,6 +161,18 @@ try {
   await win.locator('aside li').first().click()
   // O detalhe da execução vem do histórico de forma assíncrona: espera a URL preencher.
   await win.waitForFunction(() => document.querySelector('input[aria-label="URL"]')?.value === '/charges')
+
+  // Endpoint público (requiresAuth: false): vai sem a auth do conector, como no vvpost run; a aba pode pedir a auth.
+  await win.selectOption('select[aria-label="Endpoint"]', 'status')
+  await win.getByText(/Endpoint público \(requiresAuth: false\): vai sem a auth do conector/).waitFor()
+  await win.getByRole('button', { name: 'Enviar' }).click()
+  await win.getByText('200 OK').waitFor()
+  assert.deepEqual(JSON.parse(await win.locator('pre').textContent()), { auth: null, tenant: 'acme' })
+  assert.equal(tokenCalls, 2, 'o público não pode rodar o fluxo de token')
+  await win.getByRole('checkbox', { name: 'Enviar a auth mesmo assim' }).check()
+  await win.getByRole('button', { name: 'Enviar' }).click()
+  await win.waitForFunction(() => document.querySelector('pre')?.textContent?.includes('Bearer'))
+  assert.equal(JSON.parse(await win.locator('pre').textContent()).auth, 'Bearer tok-3')
 } finally {
   await app.close()
   server.close()
@@ -164,8 +181,12 @@ try {
 const db = new DatabaseSync(join(userData, 'vvpost.db'))
 const rows = db.prepare('SELECT url, detail, connector_id, environment_id FROM history_exchange').all()
 db.close()
-assert.equal(rows.length, 3)
-for (const { detail, ...row } of rows) {
+assert.equal(rows.length, 5)
+const status = rows.filter((r) => r.url === '/status').map((r) => JSON.parse(r.detail))
+// O envio sem credencial fica marcado no histórico (Reproduzir repete sem a auth); o com auth, não.
+assert.deepEqual(status.map((d) => !!d.template.anonymous), [true, false])
+assert.ok(!status[0].sent.headers.some((h) => /^authorization$/i.test(h.name)))
+for (const { detail, ...row } of rows.filter((r) => r.url !== '/status')) {
   // O histórico guarda a requisição como digitada (repetível), nunca o token nem o segredo.
   assert.deepEqual({ ...row }, {
     url: '/charges',

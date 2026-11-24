@@ -42,6 +42,8 @@ export interface RequestDraft {
   graphql?: { query: string; variables: string; operationName?: string }
   /** Endpoint do conector que preencheu a aba, para o inspector. */
   endpointId: string | null
+  /** Endpoint público (requiresAuth: false): manda a auth do conector mesmo assim (padrão: sem credencial). */
+  withAuth?: boolean
   result: HttpResult | null
   /** Resposta do envio anterior, para "Comparar com a resposta anterior". */
   previous: HttpResult | null

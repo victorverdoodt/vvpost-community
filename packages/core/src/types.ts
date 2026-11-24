@@ -55,6 +55,11 @@ export interface HttpRequestInput {
   endpointId?: string
   /** Scripts pre e post desta requisição, além dos herdados do conector e do endpoint (fase 13). */
   scripts?: RequestScripts
+  /**
+   * Num endpoint público (`requiresAuth: false`), manda a auth do conector mesmo assim. Sem ele, o
+   * Quick Request chama o público sem credencial, como o `vvpost run` e o MCP.
+   */
+  withAuth?: boolean
 }
 
 /** Chamada pelo adapter de um plugin no Quick Request, no lugar de uma requisição HTTP. */

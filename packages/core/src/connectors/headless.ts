@@ -39,6 +39,23 @@ export interface HeadlessOptions {
 }
 
 /**
+ * A requisição do Quick Request vai sem credencial: veio de um endpoint público
+ * (`requiresAuth: false`) e não pediu a auth do conector (`withAuth`), como no `vvpost run` e no MCP.
+ */
+export function anonymousRequest(input: Pick<HttpRequestInput, 'connectorId' | 'endpointId' | 'withAuth'>, ws: Pick<LoadedWorkspace, 'connectors'>): boolean {
+  if (input.withAuth || !input.connectorId || !input.endpointId) return false
+  let connector: ResolvedConnector
+  try {
+    connector = resolveConnector(input.connectorId, ws.connectors)
+  } catch {
+    // Herança quebrada: o envio mostra o erro do conector.
+    return false
+  }
+  const endpoint = connector.endpoints.find((e) => e.id === input.endpointId)
+  return endpoint?.requiresAuth === false && !endpoint.plugin
+}
+
+/**
  * Quick Request com herança headless: resolve as variáveis do ambiente,
  * aplica baseUrl, headers e mTLS herdados do conector, roda a auth em segundo
  * plano (com token em cache) e dispara. Um token em cache recusado com 401 é

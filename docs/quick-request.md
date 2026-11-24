@@ -319,6 +319,13 @@ cadeia de `extends`: headers, certificado de cliente (mTLS) e autenticação. O 
 resolve os `{{VAR}}` do conector e da própria requisição; segredos vêm do arquivo local.
 O seletor **Endpoint** preenche método, caminho, headers e corpo a partir do conector.
 
+Um endpoint público (`"requiresAuth": false`, o [gate de acesso](tests.md#gate-de-acesso-requiresauth))
+vai sem credencial, como no `vvpost run` e no MCP: sem a auth do conector e sem os headers de
+credencial herdados (`Authorization`, `Cookie`, `X-Api-Key`...). Os outros headers herdados vão, e um
+header de credencial digitado na aba também. O Inspector e a aba Auth avisam, e **Enviar a auth mesmo
+assim** no Inspector manda a auth do conector naquela aba (para uma API em que a auth é opcional). O
+histórico marca o envio sem credencial, e **Reproduzir** repete do mesmo jeito.
+
 ### Fluxo de preparação
 
 Quando o workspace tem fluxos (`flows/*.flow.vvpost.json`), o contexto ganha o seletor

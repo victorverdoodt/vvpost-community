@@ -140,6 +140,9 @@ Com um filtro de cenários (`--scenario`, `scenarioIds`), o `$sem-credencial` s�
 pelo nome. Ele não fica no arquivo, e a regra de lint `endpoint-requires-auth` (info) aponta os
 endpoints que ainda não dizem se exigem auth.
 
+No Quick Request, o endpoint público também vai sem credencial, a não ser que a aba peça a auth
+([quick-request.md](quick-request.md#conectores-no-quick-request-headless-auth-binding)).
+
 ## Execução orientada a dados
 
 Um arquivo de dados faz o lote inteiro rodar uma vez por linha, em cada ambiente marcado. Serve CSV com cabeçalho (vírgula, ponto e vírgula ou tab, aspas

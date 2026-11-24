@@ -559,7 +559,7 @@ export function RequestEditor(props: {
           ) : (
             <EmptyState title={`${draft.method} não envia corpo`} description="Troque o método para enviar um corpo." />
           ))}
-        {!collapsed && tab === 'auth' && <AuthTab connector={connector} />}
+        {!collapsed && tab === 'auth' && <AuthTab connector={connector} publicEndpoint={endpoint?.requiresAuth === false && !endpoint.plugin} withAuth={!!draft.withAuth} />}
         {!collapsed && tab === 'scripts' && (
           <ScriptsTab
             draft={draft}
@@ -1034,7 +1034,7 @@ function ParamsEditor(props: {
   )
 }
 
-function AuthTab({ connector }: { connector: CatalogConnector | null }) {
+function AuthTab({ connector, publicEndpoint, withAuth }: { connector: CatalogConnector | null; publicEndpoint: boolean; withAuth: boolean }) {
   if (!connector?.auth) {
     return (
       <EmptyState
@@ -1058,6 +1058,13 @@ function AuthTab({ connector }: { connector: CatalogConnector | null }) {
         A credencial é obtida e renovada no processo principal a cada envio; o token nunca chega a esta tela. Um header
         com o mesmo nome na aba Headers substitui a auth herdada.
       </p>
+      {publicEndpoint && (
+        <p className={withAuth ? 'text-muted' : 'text-warning'}>
+          {withAuth
+            ? 'O endpoint é público, mas esta aba manda a auth (opção no Inspector).'
+            : 'O endpoint é público (requiresAuth: false): o envio vai sem esta auth e sem os headers de credencial, como no vvpost run. Para mandar a auth, marque "Enviar a auth mesmo assim" no Inspector.'}
+        </p>
+      )}
     </div>
   )
 }
