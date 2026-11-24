@@ -29,6 +29,7 @@ import type {
 import { useWorkspace } from '../../panels/useWorkspace'
 import { DataPicker } from './DataPicker'
 import { EndpointPalette } from './EndpointPalette'
+import { HandleBoundsGuard } from './HandleBoundsGuard'
 import { BaseSettings, Inspector } from './Inspector'
 import {
   ancestorsOf,
@@ -1050,6 +1051,7 @@ export default function FlowStudioModule() {
                 >
                   <Background gap={24} />
                   <Controls showInteractive={false} />
+                  <HandleBoundsGuard />
                 </ReactFlow>
               ) : (
                 <EmptyState
