@@ -357,7 +357,15 @@ try {
   await log.getByText('sem problemas').waitFor({ timeout: 30_000 })
   await editor.getByRole('button', { name: 'Salvar', exact: true }).click()
   const readConfig = () => JSON.parse(readFileSync(join(workspace, 'vvpost.docs.json'), 'utf8'))
-  for (let i = 0; i < 100 && readConfig().subtitle === undefined; i++) await win.waitForTimeout(100)
+  // O app grava o arquivo enquanto a espera lê: no Windows a leitura pode pegar o arquivo vazio, no meio da escrita.
+  const savedSubtitle = () => {
+    try {
+      return readConfig().subtitle
+    } catch {
+      return undefined
+    }
+  }
+  for (let i = 0; i < 100 && savedSubtitle() === undefined; i++) await win.waitForTimeout(100)
   const c4 = readConfig()
   assert.equal(c4.title, 'API de Cobranças')
   assert.equal(c4.subtitle, 'Arquitetura no modelo C4')
