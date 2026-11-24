@@ -136,6 +136,21 @@ input[type='radio'] {
 .mermaid-diagram {
   overflow: auto;
 }
+/* Lugar de um diagrama ainda não desenhado ou solto longe da tela (lazy-diagrams.ts). */
+.mermaid-pending {
+  min-height: 8rem;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-border) 25%, transparent);
+}
+/*
+ * Tabelas do Markdown: fora da tela, o Blink pula o estilo e o layout delas (um documento de projeto
+ * inteiro tem centenas). O content-visibility recorta o que transborda, daí a rolagem horizontal.
+ */
+.md-table {
+  overflow-x: auto;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 12rem;
+}
 .mermaid-diagram svg {
   max-width: 100%;
   height: auto;

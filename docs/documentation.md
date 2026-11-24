@@ -83,6 +83,10 @@ A prévia tem dois formatos, no seletor **Página | PDF** acima dela: **Página*
 como em **Visualizar** e atualiza rápido enquanto você digita (é nela que o clique e a rolagem
 ligam a prévia ao texto); **PDF** é o arquivo de verdade, com capa, cabeçalho, rodapé e quebras de
 página. A escolha fica lembrada.
+Em **Visualizar** e na **Página**, cada diagrama só é desenhado quando chega perto da área visível e
+é solto quando se afasta (o espaço dele fica reservado), e as tabelas fora da tela não passam pelo
+layout: o documento do projeto inteiro, com centenas de diagramas e tabelas, abre sem levar o app
+a gigabytes de memória.
 O seletor **Prévia | Raw | Lado a lado** no cabeçalho mostra só a prévia, só o texto
 ou os dois; a escolha vale também para as abas de `.md` e fica lembrada.
 A aba **Estilo** edita o formato e mostra a metodologia em uso (C4, arc42, Diátaxis, ADR ou um

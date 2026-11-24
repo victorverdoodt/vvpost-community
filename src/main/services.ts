@@ -205,16 +205,53 @@ setSharedConnectors(() => sharedConnectors())
 /** Fase de auth das requisições em andamento, para o cancelamento alcançar também o login/OAuth2. */
 const authPhase = new Map<string, AbortController>()
 
+/**
+ * Uma leitura do workspace em andamento. Pedidos "fresh" que chegam logo depois que ela começou (a janela
+ * voltou ao foco e cada módulo aberto relê o catálogo ao mesmo tempo) esperam essa mesma leitura em vez de
+ * abrir outra: num workspace grande, cada leitura paralela segurava a sua cópia de todos os arquivos e o
+ * main process passava de 400 MB a cada foco.
+ */
+let catalogLoad: { dir: string; generation: number; startedAt: number; promise: Promise<LoadedWorkspace> } | null = null
+/** Muda a cada invalidação: uma leitura que começou antes de uma escrita nunca atende quem pediu depois dela. */
+let catalogGeneration = 0
+/** Até quanto tempo depois do início uma leitura atende um pedido novo de catálogo fresco. */
+const CATALOG_COALESCE_MS = 250
+
+/** O catálogo em memória ficou velho (o app ou outro processo gravou no workspace). */
+function invalidateCatalog(): void {
+  catalog = null
+  catalogGeneration++
+}
+
 async function loadCatalog({ fresh = false } = {}): Promise<LoadedWorkspace> {
   const dir = await currentWorkspaceDir()
   if (!dir) throw new Error('Nenhum workspace aberto. Abra a pasta do workspace no Quick Request.')
   if (!fresh && catalog?.dir === dir) return catalog
-  catalog = await (await getConnectors()).loadWorkspace(dir)
+  const pending = catalogLoad
+  if (
+    pending?.dir === dir &&
+    pending.generation === catalogGeneration &&
+    (!fresh || Date.now() - pending.startedAt <= CATALOG_COALESCE_MS)
+  )
+    return pending.promise
+  const generation = catalogGeneration
+  const promise = getConnectors().then((m) => m.loadWorkspace(dir))
+  catalogLoad = { dir, generation, startedAt: Date.now(), promise }
+  try {
+    const loaded = await promise
+    // Uma invalidação no meio da leitura (ou outra pasta) não deixa o resultado velho no cache.
+    if (generation === catalogGeneration && (await currentWorkspaceDir()) === dir) catalog = loaded
+    return withProtection(loaded)
+  } finally {
+    if (catalogLoad?.promise === promise) catalogLoad = null
+  }
+}
+
+function withProtection(loaded: LoadedWorkspace): LoadedWorkspace {
   // O sanitizer do histórico conhece os segredos de todo workspace que o app leu (se ainda não
   // existe, nasce com o catálogo atual: ler o workspace não carrega o undici).
-  const loaded = catalog
   if (traced) void Promise.all([traced, getProtect()]).then(([t, { protectWorkspace }]) => protectWorkspace(t.sanitizer, loaded))
-  return catalog
+  return loaded
 }
 
 /**
@@ -646,7 +683,7 @@ export async function writePostmanImport(
     const target = pending.target!
     const { written } = await (await getImporters()).writeImport(pending.prepared, target, input)
     pendingImport = null
-    if (target.isWorkspace) catalog = null
+    if (target.isWorkspace) invalidateCatalog()
     return { ok: true, dir: target.dir, written }
   } catch (err) {
     return { ok: false, reason: 'error', message: (err as Error).message }
@@ -900,7 +937,7 @@ const getWorkspace = () => import('./workspace')
 const workspaceFile = () => join(app.getPath('userData'), 'workspace.json')
 
 async function setWorkspaceDir(dir: string, content: string | null = null): Promise<void> {
-  catalog = null
+  invalidateCatalog()
   const nextContent = content && content !== dir ? content : null
   const changed = workspaceDir !== dir || contentDir !== nextContent
   workspaceDir = dir
@@ -975,7 +1012,7 @@ async function ensureWatcher(): Promise<void> {
   watcher = {
     root,
     handle: watchWorkspace(root, (files) => {
-      catalog = null
+      invalidateCatalog()
       // Relativos à pasta do conteúdo, como as abas os conhecem: o Compartilhado de um projeto sai com "../".
       const content = contentDir ?? root
       const change = { files: files.map((f) => relative(content, join(root, f)).split(sep).join('/')) }
@@ -1031,7 +1068,7 @@ function inWorkspace<T>(task: (ws: typeof import('./workspace'), dir: string, co
     const dir = await currentRootDir()
     if (!dir) throw new Error('Nenhum workspace aberto.')
     // Segredos, branch ou pull mudam os arquivos que o Quick Request usa.
-    catalog = null
+    invalidateCatalog()
     const ws = await getWorkspace()
     const content = contentDir ?? dir
     const result = await task(ws, dir, content)
@@ -1909,7 +1946,7 @@ export function saveConnector(connector: Connector, file?: string, expected?: st
     )
     // Salvar no editor é a revisão do usuário das mudanças que a IA fez nesse conector (sem a revisão central).
     if (!(await centralReview(dir))) await (await import('./project/review')).clearReviewMarks(dir, [connector.id])
-    catalog = null
+    invalidateCatalog()
     // A auth pode ter mudado: o token em cache não vale mais.
     auth?.clear(connector.id)
     return { ...saved, version: await connectorVersion(dir, connector.id) }
@@ -1951,7 +1988,7 @@ export function saveSharedSchema(name: string, schema: unknown, expected?: strin
     )
     if (result.conflicts?.length) throw new Error((await import('./workspace/file-version')).changedOnDisk(`O schema "${name}"`))
     if (!result.ok) throw new Error(result.errors.map((e) => e.message).join('\n') || 'O schema não foi gravado.')
-    catalog = null
+    invalidateCatalog()
     const { versionOf } = await import('./workspace/file-version')
     return { file, version: versionOf(await readFile(join(dir, file), 'utf8').catch(() => null)) }
   })
@@ -2719,7 +2756,7 @@ export function migrateProject(dryRun: boolean): Promise<WorkspaceResult<Project
     const { migrateWorkspace } = await import('./project/migrate')
     const { plan, result } = await migrateWorkspace(dir, { dryRun, actor: 'app' })
     if (!dryRun && result?.ok) {
-      catalog = null
+      invalidateCatalog()
       auth?.clear()
     }
     return {
@@ -2751,7 +2788,7 @@ export function editProject(ops: unknown): Promise<WorkspaceResult<{ changed: st
     const { applyProjectOps } = await import('./project/apply')
     const result = await reportNewProblems(dir, () => applyProjectOps(dir, ops as ProjectOp[], { actor: 'app' }))
     if (!result.ok) throw new Error(result.errors.map((e) => e.message).join('\n') || 'O projeto não foi alterado.')
-    catalog = null
+    invalidateCatalog()
     for (const op of ops as ProjectEdit[]) {
       if ('connectorId' in op) auth?.clear(op.connectorId)
       else if (op.op === 'moveConnector' || op.op === 'deleteConnector') auth?.clear(op.id)
