@@ -53,8 +53,9 @@ try {
 
   const tree = win.getByRole('tree', { name: 'Arquivos do projeto' })
   await win.getByRole('tablist', { name: 'Abas do workspace' }).waitFor()
-  await win.waitForTimeout(800)
-  if (!(await tree.isVisible())) await win.keyboard.press('Control+Shift+E')
+  // Em janela larga o explorador abre sozinho, às vezes só depois do resize (runner lento do Windows):
+  // espera um pouco antes de decidir abrir com o atalho, para não fechar o que já ia abrir.
+  if (!(await tree.waitFor({ timeout: 5000 }).then(() => true, () => false))) await win.keyboard.press('Control+Shift+E')
   await tree.waitFor()
   const main = win.locator('main')
   const explorer = win.locator('[data-explorer-side]')
