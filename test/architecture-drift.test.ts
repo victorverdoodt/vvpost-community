@@ -369,6 +369,38 @@ describe('página velha pelo histórico do Git', () => {
     expect((await lintWorkspace(dir)).findings.filter((f) => f.code === 'doc-stale-since-change').map((f) => f.file)).toEqual(['docs/adr-001.md'])
   })
 
+  it('conector em fluxos num projeto dentro de uma pasta do repositório: endpoint novo e página em edição', async () => {
+    const repo = mkdtempSync(join(tmpdir(), 'vvpost-drift-repo-'))
+    dirs.push(repo)
+    const dir = join(repo, 'projetos', 'cobrança')
+    const write = (path: string, data: unknown) => {
+      mkdirSync(dirname(join(dir, path)), { recursive: true })
+      writeFileSync(join(dir, path), typeof data === 'string' ? data : JSON.stringify(data, null, 2))
+    }
+    const request = (id: string, url: string) => ({
+      id,
+      name: id,
+      extends: 'billing',
+      nodes: [{ id: 'request', name: 'Request', type: 'request', request: { method: 'POST', url } }]
+    })
+    write('flows/billing/billing.flow.vvpost.json', { id: 'billing', name: 'Billing', defaults: { baseUrl: 'https://api.test' }, nodes: [] })
+    write('flows/billing/billing.charge.flow.vvpost.json', request('billing.charge', '/charges'))
+    write('docs/adr-001.md', '# ADR 1: cobrança\n\nO conector billing cobra na hora.\n')
+    run(repo, 'init', '-q')
+    run(repo, 'add', '.')
+    run(repo, 'commit', '-q', '-m', 'inicial')
+    expect((await lintWorkspace(dir)).findings.filter((f) => f.code === 'doc-stale-since-change')).toEqual([])
+
+    write('flows/billing/billing.refund.flow.vvpost.json', request('billing.refund', '/refunds'))
+    const stale = (await lintWorkspace(dir)).findings.filter((f) => f.code === 'doc-stale-since-change')
+    expect(stale.map((f) => `${f.file} ${f.label}`)).toEqual(['docs/adr-001.md billing'])
+    expect(stale[0]!.message).toMatch(/\+endpoint billing\.refund/)
+
+    // A página em edição (o status vem relativo à raiz do repositório) conta como revisada.
+    write('docs/adr-001.md', '# ADR 1: cobrança\n\nO conector billing cobra e estorna.\n')
+    expect((await lintWorkspace(dir)).findings.filter((f) => f.code === 'doc-stale-since-change')).toEqual([])
+  })
+
   it('fora de um repositório não diz nada', async () => {
     const dir = seeded()
     expect((await lintWorkspace(dir)).findings.filter((f) => f.code === 'doc-stale-since-change')).toEqual([])
