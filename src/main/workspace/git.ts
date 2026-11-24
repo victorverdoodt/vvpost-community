@@ -66,6 +66,60 @@ export async function git(
   })
 }
 
+/**
+ * `git cat-file --batch`: o conteúdo de vários objetos (`<commit>:<caminho>`) num processo só. null para
+ * o que não existe. No Windows cada processo do Git custa ~100 ms; um lint que lia 30 arquivos de um
+ * commit passava 3 s esperando.
+ */
+export function catFiles(cwd: string, specs: readonly string[]): Promise<(string | null)[]> {
+  if (!specs.length) return Promise.resolve([])
+  return new Promise((resolve, reject) => {
+    const child = execFile(
+      'git',
+      ['-c', 'core.quotepath=false', 'cat-file', '--batch'],
+      {
+        cwd,
+        encoding: 'buffer',
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: LOCAL_TIMEOUT_MS,
+        windowsHide: true,
+        env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_OPTIONAL_LOCKS: '0', LC_ALL: 'C' }
+      },
+      (err, stdout) => {
+        if (err) {
+          const e = err as NodeJS.ErrnoException
+          return reject(new GitError(e.code === 'ENOENT' ? 'Git não encontrado no PATH. Instale o Git e reabra o VVPost.' : e.message, e.code === 'ENOENT' ? 'NOT_INSTALLED' : 'FAILED'))
+        }
+        resolve(parseBatch(stdout as Buffer, specs.length))
+      }
+    )
+    // Uma linha por objeto; uma quebra de linha no nome mudaria a contagem, então esse objeto sai como inexistente.
+    child.stdin?.end(specs.map((s) => (/[\r\n]/.test(s) ? 'missing:' : s)).join('\n') + '\n')
+  })
+}
+
+/** A saída do --batch: `<oid> <tipo> <tamanho>` e o conteúdo, ou `<nome> missing` (e afins) sem conteúdo. */
+export function parseBatch(out: Buffer, count: number): (string | null)[] {
+  const result: (string | null)[] = []
+  let at = 0
+  while (result.length < count && at < out.length) {
+    const end = out.indexOf(0x0a, at)
+    if (end < 0) break
+    const header = out.subarray(at, end).toString('utf8')
+    at = end + 1
+    const m = /^[0-9a-f]+ (\w+) (\d+)$/.exec(header)
+    if (!m) {
+      result.push(null)
+      continue
+    }
+    const size = Number(m[2])
+    result.push(m[1] === 'blob' ? out.subarray(at, at + size).toString('utf8') : null)
+    at += size + 1
+  }
+  while (result.length < count) result.push(null)
+  return result
+}
+
 export async function isRepository(dir: string): Promise<boolean> {
   try {
     return (await git(dir, ['rev-parse', '--is-inside-work-tree'])).trim() === 'true'

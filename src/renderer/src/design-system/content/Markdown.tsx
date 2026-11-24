@@ -98,36 +98,16 @@ export async function renderMermaid(source: string): Promise<{ svg: string } | {
 }
 
 /** SVGs da visualização por fonte (lazy-diagrams.ts): voltar a um diagrama não roda o Mermaid de novo. */
-const drawn = new LruCache<string, Promise<Drawn | null>>(DIAGRAM_CACHE_LIMIT)
+const drawn = new LruCache<string, Promise<{ svg: string } | { error: string }>>(DIAGRAM_CACHE_LIMIT)
 
-type Drawn = { svg: string } | { error: string }
-
-/**
- * Os diagramas da visualização saem um de cada vez, com uma volta do event loop entre eles: chegar de
- * uma vez numa região com dezenas de diagramas (rolar rápido, pular pelo sumário) rodava o Mermaid
- * de todos juntos e travava a tela por segundos. Quem já saiu de perto da tela quando chega a vez
- * dele é pulado.
- */
-let drawQueue: Promise<unknown> = Promise.resolve()
-const yieldToInput = () => new Promise<void>((r) => setTimeout(r, 0))
-
-/**
- * renderMermaid com o cache da visualização e a fila acima; um pedido igual em andamento é o mesmo.
- * null: o diagrama foi pulado porque `wanted` (de quem pediu primeiro) já era falso na vez dele.
- */
-function drawDiagram(source: string, wanted: () => boolean): Promise<Drawn | null> {
+/** renderMermaid com o cache da visualização; um pedido igual em andamento é o mesmo. */
+function drawDiagram(source: string): Promise<{ svg: string } | { error: string }> {
   const hit = drawn.get(source)
   if (hit) return hit
-  const promise: Promise<Drawn | null> = drawQueue.then(async () => {
-    if (!wanted()) return null
-    const result = await renderMermaid(source)
-    await yieldToInput()
-    return result
-  })
-  drawQueue = promise.catch(() => null)
+  const promise = renderMermaid(source)
   drawn.set(source, promise)
-  // Pulado ou com erro não fica no cache: um ícone de plugin que faltava pode chegar depois.
-  void promise.then((r) => (r === null || 'error' in r) && drawn.delete(source))
+  // Erro não fica no cache: um ícone de plugin que faltava pode chegar depois.
+  void promise.then((r) => 'error' in r && drawn.delete(source))
   return promise
 }
 
@@ -277,22 +257,18 @@ export function Markdown({ source, className = '', lines = false }: { source: st
           show() {
             if (visible) return
             visible = true
-            const draw = (): void =>
-              void drawDiagram(text, () => visible && figure.isConnected).then((result) => {
-                if (!visible || !figure.isConnected) return
-                // Pulado na fila por outro lugar com o mesmo diagrama que saiu da tela: pede de novo.
-                if (result === null) return draw()
-                if ('svg' in result) {
-                  body.innerHTML = result.svg
-                  figure.classList.remove('mermaid-error')
-                } else {
-                  body.textContent = `Diagrama Mermaid inválido: ${result.error}`
-                  figure.classList.add('mermaid-error')
-                }
-                figure.classList.remove('mermaid-pending')
-                figure.style.minHeight = ''
-              })
-            draw()
+            void drawDiagram(text).then((result) => {
+              if (!visible || !figure.isConnected) return
+              if ('svg' in result) {
+                body.innerHTML = result.svg
+                figure.classList.remove('mermaid-error')
+              } else {
+                body.textContent = `Diagrama Mermaid inválido: ${result.error}`
+                figure.classList.add('mermaid-error')
+              }
+              figure.classList.remove('mermaid-pending')
+              figure.style.minHeight = ''
+            })
           },
           hide() {
             if (!visible) return
@@ -335,13 +311,9 @@ export function MermaidDiagram({ source, label }: { source: string; label: strin
       show() {
         if (visible) return
         visible = true
-        const draw = (): void =>
-          void drawDiagram(source, () => visible).then((r) => {
-            if (!visible) return
-            if (r === null) return draw()
-            setResult(r)
-          })
-        draw()
+        void drawDiagram(source).then((r) => {
+          if (visible) setResult(r)
+        })
       },
       hide() {
         if (!visible) return
