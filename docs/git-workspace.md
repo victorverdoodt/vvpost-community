@@ -64,7 +64,9 @@ workspace/
 - **Ambientes e segredos.** Os ambientes do Compartilhado valem nos projetos. Um ambiente do
   projeto com o mesmo id acrescenta variáveis ou troca o valor delas, e o projeto vence. Os
   segredos locais da raiz valem nos projetos, e os do projeto (no [cofre local](security-model.md#cofre-local),
-  um por pasta) complementam os da raiz.
+  um por pasta) complementam os da raiz. No módulo Secrets de um projeto aparecem também os
+  ambientes, variáveis e segredos herdados, com a marca "Compartilhado": eles são editados na raiz,
+  e o valor de um segredo herdado preenchido no projeto vai para o cofre da raiz, onde é declarado.
 - **Workspace sem projetos.** Um workspace sem nenhum `vvpost.project.json` é um projeto só.
 
 No CLI, uma pasta de dentro de um projeto vale o projeto, como o Git acha o repositório. Ali,

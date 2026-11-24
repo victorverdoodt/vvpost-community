@@ -62,6 +62,10 @@ const STATE: Record<SecretState, { label: string; tone: Tone; hint: string }> = 
   }
 }
 
+/** Ambiente ou variável que o projeto herda do Compartilhado: vale aqui, mas edita-se na raiz. */
+const SHARED_HINT =
+  'Vem do ambiente do Compartilhado (a raiz do workspace): edite na raiz. O valor do segredo fica no cofre da raiz.'
+
 const TYPE_LABEL = { string: 'texto', number: 'número', boolean: 'sim ou não' } as const
 
 const REVEAL_POLICY =
@@ -381,7 +385,8 @@ export default function SecretsModule() {
                     size="sm"
                     variant="ghost"
                     icon={<Pencil size={14} aria-hidden />}
-                    disabled={!!env.problem}
+                    disabled={!!env.problem || !!env.shared}
+                    title={env.shared ? SHARED_HINT : undefined}
                     onClick={() => void renameEnvironment()}
                   >
                     Renomear
@@ -390,7 +395,8 @@ export default function SecretsModule() {
                     size="sm"
                     variant="ghost"
                     icon={<Trash2 size={14} aria-hidden />}
-                    disabled={!!env.problem}
+                    disabled={!!env.problem || !!env.shared}
+                    title={env.shared ? SHARED_HINT : undefined}
                     onClick={() => void deleteEnvironment()}
                   >
                     Excluir ambiente
@@ -476,6 +482,11 @@ export default function SecretsModule() {
                           >
                             {s.variable}
                           </button>
+                          {s.shared && (
+                            <Badge className="ml-2" title={SHARED_HINT}>
+                              Compartilhado
+                            </Badge>
+                          )}
                         </td>
                         <td className={table.td}>
                           <Badge tone={STATE[s.state].tone} title={STATE[s.state].hint}>
@@ -501,7 +512,8 @@ export default function SecretsModule() {
                 size="sm"
                 className="ml-auto"
                 icon={<Plus size={14} aria-hidden />}
-                disabled={!!env.problem}
+                disabled={!!env.problem || !!env.shared}
+                title={env.shared ? SHARED_HINT : undefined}
                 onClick={() => setEditing('')}
               >
                 Nova variável
@@ -536,7 +548,14 @@ export default function SecretsModule() {
                 <tbody>
                   {env.variables.map((v) => (
                     <tr key={v.name} className={cx(table.row, editing === v.name && 'bg-accent/10')}>
-                      <td className={`${table.td} font-mono`}>{v.name}</td>
+                      <td className={`${table.td} font-mono`}>
+                        {v.name}
+                        {v.shared && (
+                          <Badge className="ml-2 font-sans" title={SHARED_HINT}>
+                            Compartilhado
+                          </Badge>
+                        )}
+                      </td>
                       <td className={`${table.td} text-muted`}>{v.isSecret ? 'segredo' : TYPE_LABEL[v.type]}</td>
                       <td className={`${table.td} font-mono break-all`}>
                         {v.value !== undefined ? (
@@ -553,7 +572,8 @@ export default function SecretsModule() {
                           <button
                             type="button"
                             className="rounded p-1 text-muted hover:text-fg disabled:opacity-40"
-                            disabled={!!env.problem}
+                            disabled={!!env.problem || !!v.shared}
+                            title={v.shared ? SHARED_HINT : undefined}
                             aria-label={`Editar ${v.name}`}
                             onClick={() => setEditing(v.name)}
                           >
@@ -562,7 +582,8 @@ export default function SecretsModule() {
                           <button
                             type="button"
                             className="rounded p-1 text-muted hover:text-danger disabled:opacity-40"
-                            disabled={!!env.problem}
+                            disabled={!!env.problem || !!v.shared}
+                            title={v.shared ? SHARED_HINT : undefined}
                             aria-label={`Excluir ${v.name}`}
                             onClick={() => void deleteVariable(v.name)}
                           >

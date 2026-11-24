@@ -1,5 +1,6 @@
 import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { isProjectDir } from '@vvpost/core/projects'
 import type { MissingSecret, SecretInventory, SecretState, UnredactedSecrets } from '@shared/ipc'
 import { validateEnvironment, type Environment } from '@vvpost/schemas'
 import { isSensitiveName, SECRET_PLACEHOLDER, SECRETS_FILE } from '@vvpost/core/secrets'
@@ -163,23 +164,88 @@ export async function redactFiles(
   return { redacted, changed: [...changed] }
 }
 
-/** Segredos que o workspace espera (__REQUIRED_SECRET__) e ainda não têm valor local. */
-export async function findMissingSecrets(dir: string): Promise<MissingSecret[]> {
-  const store = await readSecretsStore(dir).catch(() => ({}) as SecretsStore)
-  const out: MissingSecret[] = []
+/**
+ * A pasta do Compartilhado quando `dir` é um projeto (docs/git-workspace.md, Projetos): a raiz,
+ * cujos ambientes e cofre o projeto herda. null na raiz.
+ */
+export function sharedDirOf(dir: string): string | null {
+  return isProjectDir(dir) ? dirname(dir) : null
+}
+
+/** Um ambiente como a pasta o vê: o do projeto (`own`) complementando o do Compartilhado (`base`). */
+interface LayeredEnvironment {
+  id: string
+  own?: { env: Environment; file: string }
+  /** `file` relativo a `dir`, com o "../" da raiz. */
+  base?: { env: Environment; file: string }
+}
+
+/**
+ * Os ambientes de `dir` com a herança do Compartilhado, na mesma regra do core (loadWorkspace): o
+ * ambiente do projeto complementa o da raiz com o mesmo id, e as variáveis do projeto vencem. Os do
+ * projeto vêm primeiro, na ordem dos arquivos; depois os que só a raiz tem.
+ */
+async function layeredEnvironments(dir: string): Promise<LayeredEnvironment[]> {
+  const byId = new Map<string, LayeredEnvironment>()
   for (const file of await listEnvironmentFiles(dir)) {
     const env = await readEnvironment(dir, file)
-    if (!env) continue
-    for (const [variable, v] of Object.entries(env.variables)) {
+    if (env && !byId.has(env.id)) byId.set(env.id, { id: env.id, own: { env, file } })
+  }
+  const shared = sharedDirOf(dir)
+  if (shared) {
+    for (const file of await listEnvironmentFiles(shared)) {
+      const env = await readEnvironment(shared, file)
+      if (!env) continue
+      const entry = byId.get(env.id) ?? { id: env.id }
+      if (entry.base) continue
+      entry.base = { env, file: `../${file}` }
+      byId.set(env.id, entry)
+    }
+  }
+  return [...byId.values()]
+}
+
+/** As variáveis do ambiente com a herança; `shared` marca as que só o Compartilhado declara. */
+function layeredVariables(e: LayeredEnvironment): [string, unknown, boolean][] {
+  const own = e.own?.env.variables ?? {}
+  const out: [string, unknown, boolean][] = []
+  for (const [name, v] of Object.entries(e.base?.env.variables ?? {})) if (!(name in own)) out.push([name, v, true])
+  for (const [name, v] of Object.entries(own)) out.push([name, v, false])
+  return out
+}
+
+/** Os cofres que valem para `dir`: o do Compartilhado e o da pasta, que vence (como no core). */
+async function layeredStores(dir: string): Promise<{ own: SecretsStore; shared: SecretsStore }> {
+  const sharedDir = sharedDirOf(dir)
+  const [own, shared] = await Promise.all([
+    readSecretsStore(dir).catch(() => ({}) as SecretsStore),
+    sharedDir ? readSecretsStore(sharedDir).catch(() => ({}) as SecretsStore) : ({} as SecretsStore)
+  ])
+  return { own, shared }
+}
+
+const hasValue = (stores: { own: SecretsStore; shared: SecretsStore }, envId: string, variable: string) =>
+  !!(stores.own[envId]?.[variable] || stores.shared[envId]?.[variable])
+
+/**
+ * Segredos que o workspace espera (__REQUIRED_SECRET__) e ainda não têm valor local. Num projeto,
+ * entram também os do Compartilhado que o projeto herda, que é o que as requisições dele pedem.
+ */
+export async function findMissingSecrets(dir: string): Promise<MissingSecret[]> {
+  const stores = await layeredStores(dir)
+  const out: MissingSecret[] = []
+  for (const e of await layeredEnvironments(dir)) {
+    const env = e.own?.env ?? e.base!.env
+    for (const [variable, v, shared] of layeredVariables(e)) {
       if (!isObject(v) || v.isSecret !== true || v.value !== SECRET_PLACEHOLDER) continue
-      if (store[env.id]?.[variable]) continue
+      if (hasValue(stores, e.id, variable)) continue
       out.push({
-        environmentId: env.id,
-        environmentName: env.name || env.id,
-        file,
+        environmentId: e.id,
+        environmentName: env.name || e.id,
+        file: shared ? e.base!.file : e.own!.file,
         variable,
-        description: v.description,
-        placeholder: v.placeholder
+        description: typeof v.description === 'string' ? v.description : undefined,
+        placeholder: typeof v.placeholder === 'string' ? v.placeholder : undefined
       })
     }
   }
@@ -187,43 +253,79 @@ export async function findMissingSecrets(dir: string): Promise<MissingSecret[]> 
 }
 
 /**
+ * Onde fica o valor de um segredo de `dir`: no cofre da pasta, se o ambiente do projeto o declara
+ * ou o cofre dela já tem valor; senão no do Compartilhado, que declara. null se ninguém declara.
+ */
+export async function secretVaultDir(dir: string, environmentId: string, variable: string): Promise<string | null> {
+  const e = (await layeredEnvironments(dir)).find((x) => x.id === environmentId)
+  const declared = layeredVariables(e ?? { id: environmentId }).find(([name, v]) => name === variable && isObject(v) && v.isSecret === true)
+  if (!declared) return null
+  if (!declared[2]) return dir
+  const stores = await layeredStores(dir)
+  return stores.own[environmentId]?.[variable] ? dir : sharedDirOf(dir)
+}
+
+/** O valor de um segredo como `dir` o vê: o cofre da pasta e, num projeto, o do Compartilhado. */
+export async function readSecretValue(dir: string, environmentId: string, variable: string): Promise<string | undefined> {
+  const stores = await layeredStores(dir)
+  const value = stores.own[environmentId]?.[variable] || stores.shared[environmentId]?.[variable]
+  return value === undefined || value === SECRET_PLACEHOLDER ? undefined : value
+}
+
+/**
  * Estado de cada segredo por ambiente, sem nenhum valor: configurado no vault local, pendente,
  * em texto puro no arquivo versionado, ou com nome sensível sem `isSecret`. Para o módulo Secrets.
+ * Num projeto, os ambientes e segredos herdados do Compartilhado aparecem também (marcados
+ * `shared`), porque as requisições do projeto os usam.
  */
 export async function secretInventory(dir: string): Promise<SecretInventory> {
-  const store = await readSecretsStore(dir).catch(() => ({}) as SecretsStore)
+  const stores = await layeredStores(dir)
   const keyStore = await vaultInfo(dir).then((i) => i.keyStore).catch(() => null)
   const environments: SecretInventory['environments'] = []
-  for (const file of await listEnvironmentFiles(dir)) {
-    const env = await readEnvironment(dir, file)
-    if (!env) continue
+  for (const e of await layeredEnvironments(dir)) {
+    const env = e.own?.env ?? e.base!.env
     const secrets: SecretInventory['environments'][number]['secrets'] = []
-    for (const [variable, v] of Object.entries(env.variables)) {
+    const variables: SecretInventory['environments'][number]['variables'] = []
+    for (const [variable, v, shared] of layeredVariables(e)) {
       if (!isObject(v)) continue
-      let state: SecretState
+      let state: SecretState | null = null
       if (v.isSecret === true) {
         if (v.value !== SECRET_PLACEHOLDER) state = 'plaintext'
-        else state = store[env.id]?.[variable] ? 'configured' : 'missing'
+        else state = hasValue(stores, e.id, variable) ? 'configured' : 'missing'
       } else if (isSensitiveName(variable) && v.value !== '' && v.value !== SECRET_PLACEHOLDER) {
         state = 'unmarked'
-      } else continue
-      secrets.push({ variable, state, description: v.description, placeholder: v.placeholder })
-    }
-    const variables: SecretInventory['environments'][number]['variables'] = []
-    for (const [name, v] of Object.entries(env.variables)) {
-      if (!isObject(v)) continue
-      const hidden = v.isSecret === true || isSensitiveName(name)
+      }
+      if (state) {
+        secrets.push({
+          variable,
+          state,
+          ...(typeof v.description === 'string' && { description: v.description }),
+          ...(typeof v.placeholder === 'string' && { placeholder: v.placeholder }),
+          ...(shared && { shared: true as const })
+        })
+      }
+      const hidden = v.isSecret === true || isSensitiveName(variable)
       variables.push({
-        name,
+        name: variable,
         type: v.type === 'number' || v.type === 'boolean' ? v.type : 'string',
         isSecret: v.isSecret === true,
-        ...(!hidden && { value: v.value }),
-        ...(v.description !== undefined && { description: v.description })
+        ...(!hidden && { value: v.value as string | number | boolean }),
+        ...(v.description !== undefined && { description: v.description as string }),
+        ...(shared && { shared: true as const })
       })
     }
+    // O arquivo que o app edita é o do projeto; o do Compartilhado só quando o projeto não tem um.
     const valid = validateEnvironment(env)
     const problem = valid.ok ? undefined : valid.issues.map((x) => `${x.path} ${x.message}`).join('; ')
-    environments.push({ id: env.id, name: env.name || env.id, file, secrets, variables, ...(problem && { problem }) })
+    environments.push({
+      id: e.id,
+      name: env.name || e.id,
+      file: e.own?.file ?? e.base!.file,
+      ...(!e.own && { shared: true as const }),
+      secrets,
+      variables,
+      ...(problem && { problem })
+    })
   }
   return { dir, storeFile: keyStore ? `cofre local (chave: ${keyStore})` : 'cofre local', environments }
 }
