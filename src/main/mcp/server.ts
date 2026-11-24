@@ -17,9 +17,11 @@ import { READINESS_TOOLS } from './readiness-tools'
 import { featureDenial } from '@vvpost/core/policy/features'
 import { fitPayload } from './budget'
 import { MCP_SEARCH_TERMS } from '@shared/mcp-tools'
+import { isModernVersion, LEGACY_VERSIONS, META, ProtocolError, requestedVersion, SUPPORTED_VERSIONS } from './protocol'
+import { createSkillCatalog, SKILLS_CAPABILITY, SKILLS_EXTENSION, type SkillCatalog } from './skills'
 
-/** Versões do protocolo MCP que o servidor fala, da mais nova para a mais antiga. */
-export const PROTOCOL_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'] as const
+/** Versões do protocolo MCP que o servidor fala, da mais nova para a mais antiga (modernas e com initialize). */
+export const PROTOCOL_VERSIONS = SUPPORTED_VERSIONS
 const SERVER_INFO = { name: 'vvpost', title: 'VVPost', version: '0.1.0' }
 
 // Vai em toda conversa: curto. O detalhe fica nas descrições das ferramentas e no guia.
@@ -39,6 +41,7 @@ const INSTRUCTIONS_DETAIL =
   'Sem o trecho do VVPost (<!-- vvpost:docs -->) no CLAUDE.md ou AGENTS.md do repositório, ofereça install_agent_rules { repo }. ' +
   'Credenciais: nunca peça nem escreva; use {{VAR}} de variável secreta. Vários projetos: list_projects e project nas ferramentas (com um só, não precisa). ' +
   'Documente pelo documento do projeto (save_docs_project, páginas em docs/ com {{> include}}); não crie arquivos .md soltos; guia em vvpost://docs/guia. ' +
+  'Passo a passos (skills): skill://atualizar-docs-com-o-codigo/SKILL.md, skill://chamar-api/SKILL.md e skill://documentar-projeto/SKILL.md. ' +
   'Com a pessoa editando no app, mande expect {caminho: versão}; com CONFLICT nada foi gravado. Erros trazem code e hint.'
 
 /** As instruções do initialize: o resumo na primeira linha, o aviso da regra (quando falta) e o detalhe depois. */
@@ -98,6 +101,8 @@ export interface McpServerOptions {
   limits?: Pick<RequestPolicy, 'rate' | 'maxConcurrent' | 'maxTimeoutMs'>
   /** Para testes: as ferramentas e o sanitizer usados. */
   tools?: readonly McpTool[]
+  /** Para testes: as skills publicadas (Skills over MCP). Ausente: as do VVPost. */
+  skills?: SkillCatalog
   /**
    * Só estas ferramentas são anunciadas e atendem (--tools: perfis e nomes). Ausente: todas. Cada
    * definição anunciada vai em todo turno do agente, então um passo que usa poucas paga menos.
@@ -268,12 +273,21 @@ export function createMcpServer(options: McpServerOptions): McpServer {
     return guard.guard
   }
 
+  const skills = options.skills ?? createSkillCatalog()
+  const capabilities = {
+    tools: { listChanged: false },
+    prompts: { listChanged: false },
+    resources: { listChanged: false },
+    extensions: { [SKILLS_EXTENSION]: SKILLS_CAPABILITY }
+  }
   const ok = (id: JsonRpcResponse['id'], result: unknown): JsonRpcResponse => ({ jsonrpc: '2.0', id, result })
-  const fail = (id: JsonRpcResponse['id'], code: number, message: string): JsonRpcResponse => ({
+  const fail = (id: JsonRpcResponse['id'], code: number, message: string, data?: unknown): JsonRpcResponse => ({
     jsonrpc: '2.0',
     id,
-    error: { code, message: sanitizer.text(message) }
+    error: { code, message: sanitizer.text(message), ...(data !== undefined && { data }) }
   })
+  /** Pedidos em andamento, para o notifications/cancelled do stdio parar o trabalho. */
+  const inflight = new Map<string, AbortController>()
 
   async function callTool(params: Record<string, unknown>, signal?: AbortSignal) {
     const name = params['name']
@@ -391,22 +405,84 @@ export function createMcpServer(options: McpServerOptions): McpServer {
       return isNotification ? null : fail(id, RpcError.InvalidRequest, 'mensagem JSON-RPC inválida')
     }
     const params = (req.params ?? {}) as Record<string, unknown>
-    if (isNotification) return null
+    if (isNotification) {
+      if (req.method === 'notifications/cancelled') inflight.get(String(params['requestId']))?.abort()
+      return null
+    }
+    // Era moderna: a versão vem no _meta de cada pedido, e o servidor recusa a que não fala.
+    const version = requestedVersion(params)
+    if (version !== undefined && !isModernVersion(version)) {
+      return fail(id, ProtocolError.UnsupportedProtocolVersion, 'Unsupported protocol version', { supported: SUPPORTED_VERSIONS, requested: version })
+    }
+    const modern = version !== undefined
+    const key = String(id)
+    const controller = new AbortController()
+    const onAbort = () => controller.abort()
+    signal?.addEventListener('abort', onAbort, { once: true })
+    if (signal?.aborted) controller.abort()
+    inflight.set(key, controller)
+    try {
+      const reply = await dispatch(req.method, params, id, controller.signal)
+      return modern && reply.result !== undefined ? ok(id, modernResult(req.method, reply.result)) : reply
+    } finally {
+      signal?.removeEventListener('abort', onAbort)
+      if (inflight.get(key) === controller) inflight.delete(key)
+    }
+  }
 
-    switch (req.method) {
+  /** Resultado da era moderna: resultType, o servidor no _meta e, nas listas e leituras, a validade do cache. */
+  function modernResult(method: string, result: unknown): unknown {
+    if (!result || typeof result !== 'object' || Array.isArray(result)) return result
+    const r = result as Record<string, unknown>
+    const cacheable = ['tools/list', 'prompts/list', 'resources/list', 'resources/templates/list', 'resources/read'].includes(method)
+    return {
+      ...r,
+      resultType: r['resultType'] ?? 'complete',
+      ...(cacheable && !('ttlMs' in r) && { ttlMs: method === 'resources/read' ? 0 : 300_000, cacheScope: 'private' }),
+      _meta: { ...(r['_meta'] as object | undefined), [META.serverInfo]: SERVER_INFO }
+    }
+  }
+
+  /** Os resultados de skills levam a validade do cache em qualquer era: o schema da extensão exige. */
+  const skillsResult = (result: Record<string, unknown>) => ({ resultType: 'complete', ...result, ttlMs: skills.ttlMs, cacheScope: 'public' })
+
+  async function dispatch(method: string, params: Record<string, unknown>, id: JsonRpcResponse['id'], signal: AbortSignal): Promise<JsonRpcResponse> {
+    switch (method) {
       case 'initialize': {
         const asked = String(params['protocolVersion'] ?? '')
-        const protocolVersion = (PROTOCOL_VERSIONS as readonly string[]).includes(asked) ? asked : PROTOCOL_VERSIONS[0]
+        const protocolVersion = (LEGACY_VERSIONS as readonly string[]).includes(asked) ? asked : LEGACY_VERSIONS[0]
         const repo = await missingRule()
         return ok(id, {
           protocolVersion,
-          capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
+          capabilities,
           serverInfo: SERVER_INFO,
           instructions: serverInstructions(repo ?? undefined)
         })
       }
+      case 'server/discover': {
+        const repo = await missingRule()
+        return ok(id, {
+          supportedVersions: SUPPORTED_VERSIONS,
+          capabilities,
+          instructions: serverInstructions(repo ?? undefined),
+          ttlMs: 60_000,
+          cacheScope: 'private'
+        })
+      }
       case 'ping':
         return ok(id, {})
+      case 'skills/list':
+        return ok(id, skillsResult({ skills: await skills.list() }))
+      case 'skills/get': {
+        const skill = await skills.get(String(params['uri'] ?? ''))
+        if (!skill) return fail(id, RpcError.InvalidParams, `nenhuma skill em ${String(params['uri'])}`)
+        return ok(id, skillsResult({ skill }))
+      }
+      case 'resources/directory/read': {
+        const children = await skills.directory(String(params['uri'] ?? ''))
+        if (!children) return fail(id, RpcError.InvalidParams, `${String(params['uri'])} não é um diretório`)
+        return ok(id, skillsResult({ resources: children }))
+      }
       case 'tools/list':
         return ok(id, {
           tools: tools.map((t) => ({
@@ -431,6 +507,8 @@ export function createMcpServer(options: McpServerOptions): McpServer {
       case 'resources/templates/list':
         return ok(id, { resourceTemplates: [] })
       case 'resources/read': {
+        const skillFile = await skills.read(String(params['uri'] ?? ''))
+        if (skillFile) return ok(id, { contents: [skillFile], ttlMs: skills.ttlMs, cacheScope: 'public' })
         const resource = DOC_RESOURCES.find((r) => r.uri === params['uri'])
         if (!resource) return fail(id, RpcError.InvalidParams, `resource desconhecido: ${String(params['uri'])}`)
         try {
@@ -457,7 +535,7 @@ export function createMcpServer(options: McpServerOptions): McpServer {
         }
       }
       default:
-        return fail(id, RpcError.MethodNotFound, `método não suportado: ${req.method}`)
+        return fail(id, RpcError.MethodNotFound, `método não suportado: ${method}`)
     }
   }
 
