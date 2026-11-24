@@ -171,7 +171,8 @@ const VVPOST_RULES = {
   ...brand('brand-code-drift', 'Tema no código (variável CSS ou createTheme) com o valor do token mapeado em $extensions.vvpost.code', 'error'),
   ...brand('brand-hardcoded-color', 'Cor da marca usada pelo token, não escrita à mão', 'warn'),
   ...brand('brand-unknown-color', 'Cor no código que é da marca', 'warn'),
-  ...brand('brand-font', 'Fonte no código que está nos tokens da marca', 'warn')
+  ...brand('brand-font', 'Fonte no código que está nos tokens da marca', 'warn'),
+  ...brand('brand-spacing', 'Espaçamento (margin, padding, gap) na escala dos tokens da marca', 'warn')
 }
 
 /** Regra que reporta um tipo de achado da marca; a mensagem e o hint vêm do item. */

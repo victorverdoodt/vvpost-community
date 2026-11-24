@@ -78,6 +78,7 @@ time pode desligar ou trocar a severidade de cada uma.
 | `brand-hardcoded-color` | aviso | Cor escrita à mão que é o valor de um token: o `hint` diz o token e como usá-lo (`var(--accent)`, `theme.palette.primary.main`). |
 | `brand-unknown-color` | aviso | Cor escrita à mão que não é da marca: o `hint` diz o token mais próximo (e se é quase igual). Preto e branco translúcidos (sombras e véus) não contam. |
 | `brand-font` | aviso | `font-family` (CSS) ou `fontFamily` (JS) cuja primeira fonte não está nos tokens. Valores com `var(...)` não são conferidos. |
+| `brand-spacing` | aviso | `margin`, `padding` ou `gap` (CSS, ou `paddingTop: '13px'` no JS e no `sx`) com um valor em px ou rem que não está na escala: os tokens `dimension` de um grupo `space`, `spacing`, `spacer` ou `gap` (`space.2`, `size.spacing.md`), em qualquer modo, com 1rem = 16px. O `hint` diz o token mais perto e a escala. Só vale com dois tokens ou mais na escala; `0`, número sem unidade (o múltiplo do `theme.spacing` do MUI), `em`, `var(...)` e `calc(...)` não são conferidos. |
 
 A leitura do código é de texto e de CSS, sem entender JSX nem Razor a fundo: o objetivo é pegar o
 literal solto e o tema que divergiu, não validar a tela. As definições de variáveis CSS e o objeto do

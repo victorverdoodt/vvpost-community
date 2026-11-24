@@ -211,6 +211,45 @@ describe('código do frontend contra os tokens', () => {
   })
 })
 
+describe('espaçamento contra a escala dos tokens', () => {
+  const SCALE = {
+    space: { '1': px(4), '2': px(8), '4': { $type: 'dimension', $value: '1rem' } },
+    size: { icon: px(13) },
+    $extensions: { vvpost: { code: { 'space.2': ['--space-2'] }, sources: ['web/**/*.{css,tsx}'] } }
+  }
+
+  it('margin, padding e gap fora da escala, no CSS e no JS, com o mais perto no hint', async () => {
+    const css = [
+      ':root { --space-2: 8px; --gap-x: 13px; }',
+      '.a { margin: 0 auto; padding: 8px 13px; }',
+      '.b { gap: 1rem; row-gap: 0.75rem; margin-top: -4px; }',
+      '.c { padding: var(--space-2); margin: calc(100% - 13px); width: 13px; line-height: 1.5em; }',
+      '/* padding: 7px em comentário não conta */'
+    ].join('\n')
+    const tsx = "const s = { paddingTop: '6px', marginLeft: 13, columnGap: '4px', p: 2 }\n<Box sx={{ gap: `${x}px` }} />\n"
+    const dir = workspace({ 'brand/vv.tokens.json': SCALE, 'web/ui.css': css, 'web/tela.tsx': tsx })
+    const { items } = await loadBrand(dir, { scan: true })
+    expect(items.map((i) => `${i.code} ${i.file}:${i.line} ${i.label}`)).toEqual([
+      'brand-spacing web/tela.tsx:1 6px',
+      'brand-spacing web/ui.css:2 13px',
+      'brand-spacing web/ui.css:3 0.75rem'
+    ])
+    const thirteen = items.find((i) => i.label === '13px')!
+    expect(thirteen.message).toBe('padding de 13px fora da escala de espaçamento')
+    expect(thirteen.hint).toContain('space.4 (1rem)')
+    expect(thirteen.hint).toContain('A escala: 4px, 8px, 16px')
+    expect(items.find((i) => i.label === '6px')!.hint).toMatch(/space\.1 \(4px\)|space\.2 \(8px\): use var\(--space-2\)/)
+  })
+
+  it('sem escala (menos de dois tokens de espaçamento) não confere nada', async () => {
+    const dir = workspace({
+      'brand/vv.tokens.json': { space: { '2': px(8) }, $extensions: { vvpost: { sources: ['web/**/*.css'] } } },
+      'web/ui.css': '.a { padding: 13px; }'
+    })
+    expect((await loadBrand(dir, { scan: true })).items).toEqual([])
+  })
+})
+
 describe('lint, documentação e MCP', () => {
   const seeded = () =>
     workspace({

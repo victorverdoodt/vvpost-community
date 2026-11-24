@@ -13,7 +13,7 @@ const getBrand: McpTool = {
     'Devolve os tokens da marca e do produto de brand/*.tokens.json (formato W3C DTCG) já resolvidos, uma linha por token (color.primary=#bd948a), ' +
     'no modo pedido (padrão ou um dos modos, ex.: light), com o uso no código (var(--x) ou theme.palette...) e os pares de contraste que não passam. ' +
     'Chame antes de mexer em tela, CSS ou tema: use os tokens em vez de escrever cores, fontes e espaçamentos à mão. ' +
-    'O lint confere o código contra eles (brand-code-drift, brand-hardcoded-color, brand-unknown-color, brand-font, tokens-contrast).',
+    'O lint confere o código contra eles (achados brand-* e tokens-contrast).',
   inputSchema: {
     type: 'object',
     additionalProperties: false,

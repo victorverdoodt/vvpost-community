@@ -9,6 +9,7 @@ import { BASE_MODE, colorDistance, formatTokenValue, parseColor, parseDimension,
  *   brand-hardcoded-color  cor literal no código que é o valor de um token: use o token
  *   brand-unknown-color    cor literal que não é da marca: o hint diz o token mais próximo
  *   brand-font             font-family / fontFamily fora das fontes dos tokens
+ *   brand-spacing          margin, padding ou gap em px/rem fora da escala de espaçamento dos tokens
  */
 
 export interface BrandScanContext {
@@ -19,14 +20,21 @@ export interface BrandScanContext {
   targets: Map<string, { token: BrandToken; values: unknown[]; file: BrandFile }>
   /** Token → como usar no código (o primeiro alvo de code), para o hint. */
   usage: Map<string, string>
+  /** A escala de espaçamento (tokens dimension do grupo space/spacing/gap), em px. */
+  spacing: { px: number; token: BrandToken; label: string }[]
 }
+
+/** Grupo de tokens que forma a escala de espaçamento: space.2, spacing.md, size.space.4, gap.sm. */
+const SPACING_GROUP = /(^|\.)(space|spacing|spacer|gap)(\.|$)/i
+/** rem e px em px (1rem = 16px); em fica de fora (depende da fonte). */
+const toPx = (d: { value: number; unit: string } | null) => (d && (d.unit === 'px' || d.unit === 'rem') ? Math.round(Math.abs(d.value) * (d.unit === 'rem' ? 16 : 1) * 100) / 100 : null)
 
 const GENERIC_FONTS = new Set(['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui', 'ui-sans-serif', 'ui-serif', 'ui-monospace', 'ui-rounded', 'emoji', 'math', 'inherit', 'initial', 'unset', 'revert', '-apple-system', 'blinkmacsystemfont'])
 const NEAR = 6
 const MAX_PER_FILE = 50
 
 export function brandScanContext(files: BrandFile[]): BrandScanContext {
-  const ctx: BrandScanContext = { colors: [], fonts: new Set(), targets: new Map(), usage: new Map() }
+  const ctx: BrandScanContext = { colors: [], fonts: new Set(), targets: new Map(), usage: new Map(), spacing: [] }
   for (const f of files) {
     for (const t of f.tokens) {
       if (t.resolved === undefined) continue
@@ -38,6 +46,11 @@ export function brandScanContext(files: BrandFile[]): BrandScanContext {
         }
       if (t.type === 'fontFamily')
         for (const [, v] of values) for (const family of Array.isArray(v) ? v : [v]) if (typeof family === 'string') ctx.fonts.add(family.toLowerCase())
+      if (t.type === 'dimension' && SPACING_GROUP.test(t.name))
+        for (const [, v] of values) {
+          const px = toPx(parseDimension(v))
+          if (px !== null && !ctx.spacing.some((x) => x.px === px && x.token === t)) ctx.spacing.push({ px, token: t, label: formatTokenValue(v) })
+        }
     }
     for (const [name, targets] of Object.entries(f.code)) {
       const token = f.tokens.find((t) => t.name === name)
@@ -154,7 +167,41 @@ export function scanBrandSource(file: string, text: string, ctx: BrandScanContex
       }
     }
   }
+  if (ctx.spacing.length >= 2) {
+    for (const [i, raw] of lines.entries()) {
+      if (themeLines.has(i + 1) || /^\s*(\/\/|\/\*|\*|<!--|#\s)/.test(raw)) continue
+      for (const item of offScale(raw, ctx)) push({ ...item, file, line: i + 1 })
+    }
+  }
   return items.sort((a, b) => (a.line ?? 0) - (b.line ?? 0))
+}
+
+/** margin, padding e gap: CSS (margin-top: 13px) e JS/sx com texto (paddingTop: '13px'). */
+const SPACING_PROP =
+  /(?<![\w-])((?:margin|padding)(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?|(?:Top|Right|Bottom|Left|Inline|Block)(?:Start|End)?)?|(?:grid-row-|grid-column-|grid-|row-|column-|row|column)?[gG]ap)\s*:\s*(?:(['"`])([^'"`\n]+)\2|([^;,}'"`\n]+))/g
+
+/** Os valores em px/rem de uma linha que não estão na escala (0 e o que tem var(), calc() ou tema não contam). */
+function offScale(raw: string, ctx: BrandScanContext): Omit<BrandItem, 'file'>[] {
+  const out: Omit<BrandItem, 'file'>[] = []
+  for (const m of raw.matchAll(SPACING_PROP)) {
+    const value = (m[3] ?? m[4] ?? '').trim()
+    if (/var\(|calc\(|\$\{|theme|spacing\(/.test(value)) continue
+    for (const d of value.matchAll(/(?<![\w.#-])-?(\d*\.?\d+)(px|rem)\b/g)) {
+      const px = toPx({ value: Number(d[1]), unit: d[2]! })
+      if (!px || ctx.spacing.some((x) => x.px === px)) continue
+      const near = ctx.spacing.reduce((best, x) => (Math.abs(x.px - px) < Math.abs(best.px - px) ? x : best))
+      const use = ctx.usage.get(near.token.name)
+      const scale = [...new Set(ctx.spacing.map((x) => x.px))].sort((a, b) => a - b).map((x) => `${x}px`)
+      out.push({
+        code: 'brand-spacing',
+        message: `${m[1]} de ${d[0]} fora da escala de espaçamento`,
+        hint: `O mais perto na escala é ${near.token.name} (${near.label})${use ? `: use ${use}` : ''}. A escala: ${scale.slice(0, 12).join(', ')}. Se o valor é novo de propósito, crie o token no brand/*.tokens.json.`,
+        label: d[0],
+        token: near.token.name
+      })
+    }
+  }
+  return out
 }
 
 function drift(file: string, line: number, target: string, value: string, entry: { token: BrandToken; values: unknown[]; file: BrandFile }): BrandItem {

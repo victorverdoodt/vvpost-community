@@ -20,6 +20,7 @@ export type BrandCode =
   | 'brand-hardcoded-color'
   | 'brand-unknown-color'
   | 'brand-font'
+  | 'brand-spacing'
 
 /** Um achado da marca, no formato que o lint lê ($.brand[*]). */
 export interface BrandItem {
