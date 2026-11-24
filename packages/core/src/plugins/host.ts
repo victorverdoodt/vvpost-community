@@ -154,7 +154,12 @@ export class PluginWorker {
       this.calls.set(id, {
         invocation,
         controller,
-        finish: (outcome) => finish({ ...outcome, durationMs: elapsed() })
+        finish: (outcome) => {
+          // O erro que chega depois do tempo do nó é o tempo estourado: o timer do host só não rodou
+          // antes (máquina lenta), e o plugin parou pelo próprio limite (o timeout do vm de um laço).
+          const late = !outcome.ok && outcome.code === 'PLUGIN_ERROR' && elapsed() >= invocation.context.timeoutMs
+          finish(late ? failure('TIMEOUT', `o plugin não respondeu em ${invocation.context.timeoutMs} ms`, outcome.logs) : { ...outcome, durationMs: elapsed() })
+        }
       })
       invocation.signal?.addEventListener('abort', onAbort, { once: true })
       timer = setTimeout(() => stop('TIMEOUT', `o plugin não respondeu em ${invocation.context.timeoutMs} ms`), invocation.context.timeoutMs)
