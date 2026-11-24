@@ -172,9 +172,49 @@ criar arquivos `.md` soltos pelo repositório:
   (`connector`) e `aplicar_template` (`template`, padrão `builtin:c4`). No Claude Code eles aparecem
   como `/mcp__vvpost__documentar_projeto` e assim por diante.
 
+- Skills (abaixo): os mesmos passo a passos no formato Agent Skills, que o cliente carrega quando precisa.
+
 Para o mesmo valer fora do MCP, `vvpost docs agents --out AGENTS.md` (ou `CLAUDE.md`) acrescenta ao
 arquivo de instruções do repositório um trecho curto que aponta para essas ferramentas. Veja
 [Documento do projeto](documentation.md).
+
+### Skills over MCP
+
+O servidor publica skills junto com as ferramentas pela extensão
+[`io.modelcontextprotocol/skills`](https://skills.extensions.modelcontextprotocol.io/specification/beta/skills)
+(SEP-2640). A skill vem e se atualiza com o servidor: não há nada para instalar à parte, e o cliente só lê o
+conteúdo quando o agente decide usá-la.
+
+| Skill | Para quê |
+| --- | --- |
+| `atualizar-docs-com-o-codigo` | Atualizar catálogo, páginas e PDF no mesmo trabalho em que uma API muda (`find_references`, `sync_openapi`, `edit_project`). |
+| `chamar-api` | Chamar uma API do catálogo por `execute_dry_run`, com a credencial do cofre, e não por `curl`. |
+| `documentar-projeto` | Escrever a documentação do projeto inteiro a partir de um modelo; traz o guia em `references/guia.md`. |
+| `documentar-conector` | Documentar um conector e os seus endpoints e ligá-lo ao documento do projeto. |
+| `aplicar-modelo-de-docs` | Reorganizar o documento num modelo de metodologia (C4, arc42, Diátaxis, ADR) sem perder conteúdo. |
+
+Cada arquivo é um resource `skill://<skill>/<arquivo>`, lido por `resources/read`. `skills/list` e
+`skills/get` devolvem o manifesto (frontmatter, e o SHA-256 e o tamanho de cada arquivo), que o cliente confere
+antes de carregar, e `resources/directory/read` lista uma pasta da skill. As instruções do servidor citam as três
+primeiras pelas URIs.
+
+No Claude Code (v2.1.331 ou mais nova, beta público) as skills aparecem como `/vvpost:<skill>` e em `/skills`.
+Ele só lê skills de servidores que falam a revisão 2026-07-28 do MCP, que o VVPost fala desde esta versão (abaixo).
+As skills completam a regra no `CLAUDE.md`/`AGENTS.md`, não a substituem: a regra entra em toda sessão, e a
+skill só quando o agente a abre.
+
+## Versões do protocolo
+
+O servidor é "dual-era": atende os clientes que abrem a sessão com `initialize` (2024-11-05 a 2025-11-25) e os da
+revisão 2026-07-28, sem sessão, em que cada pedido traz a versão e as capacidades em `params._meta`.
+
+- `server/discover` devolve as versões suportadas, as capacidades (com a extensão de skills) e as instruções.
+- Num pedido moderno, todo resultado leva `resultType` e o servidor em `_meta`, e as listas e leituras levam
+  `ttlMs` e `cacheScope`. Versão que o servidor não fala volta `-32022` com a lista `supported`.
+- No Streamable HTTP moderno, os headers `MCP-Protocol-Version`, `Mcp-Method` e `Mcp-Name` têm de bater com o
+  corpo (senão `400` com `-32020`); versão desconhecida volta `400` e método desconhecido `404`. Pedidos sem a
+  versão moderna seguem as regras da revisão do `initialize`.
+- No stdio, `notifications/cancelled` para a ferramenta em andamento.
 
 ## Como iniciar
 

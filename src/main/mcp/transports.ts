@@ -2,7 +2,8 @@ import { randomUUID, timingSafeEqual } from 'node:crypto'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Readable, Writable } from 'node:stream'
-import { handleText, type McpServer } from './server'
+import { headerMismatch, ProtocolError, requestedVersion } from './protocol'
+import { handleText, RpcError, type JsonRpcResponse, type McpServer } from './server'
 
 /** Porta padrão do transporte HTTP/SSE (o mock de Secret Managers usa a 4460). */
 export const DEFAULT_MCP_PORT = 4470
@@ -61,7 +62,9 @@ export interface RunningHttpTransport {
 
 /**
  * Transportes HTTP do MCP, no mesmo servidor:
- * - Streamable HTTP (2025-03-26+): POST /mcp com a mensagem, resposta em JSON.
+ * - Streamable HTTP (2025-03-26+): POST /mcp com a mensagem, resposta em JSON. Na era moderna (2026-07-28+),
+ *   os headers MCP-Protocol-Version, Mcp-Method e Mcp-Name têm de bater com o corpo, e os erros de protocolo
+ *   voltam com o status HTTP da spec (400 versão ou header, 404 método).
  * - HTTP+SSE (2024-11-05): GET /sse abre o stream e anuncia /messages?sessionId=...,
  *   onde o cliente faz POST; as respostas voltam pelo stream.
  * Só escuta em loopback e recusa Host e Origin que não sejam locais (DNS rebinding).
@@ -95,12 +98,23 @@ export async function serveHttp(server: McpServer, options: HttpTransportOptions
         if (body === null) return send(res, 413, { error: 'mensagem grande demais' })
         const controller = new AbortController()
         res.on('close', () => !res.writableFinished && controller.abort())
-        const reply = await handleText(server, body, controller.signal)
+        let message: unknown
+        try {
+          message = JSON.parse(body)
+        } catch {
+          return send(res, 200, await handleText(server, body))
+        }
+        const mismatch = headerMismatch(req.headers, message)
+        if (mismatch) {
+          const id = (message as { id?: JsonRpcResponse['id'] }).id ?? null
+          return send(res, 400, { jsonrpc: '2.0', id, error: { code: ProtocolError.HeaderMismatch, message: mismatch } })
+        }
+        const reply = await server.handle(message, controller.signal)
         if (reply === null) {
           res.writeHead(202).end()
           return
         }
-        return send(res, 200, reply)
+        return send(res, modernStatus(message, reply), reply)
       }
       if (req.method === 'DELETE') return void res.writeHead(200).end()
       res.setHeader('Allow', 'POST, DELETE')
@@ -161,6 +175,15 @@ export async function serveHttp(server: McpServer, options: HttpTransportOptions
         http.closeAllConnections()
       })
   }
+}
+
+/** Na era moderna, o erro de versão vai com 400 e o de método com 404, para o cliente reconhecer o servidor moderno. */
+function modernStatus(message: unknown, reply: JsonRpcResponse | JsonRpcResponse[]): number {
+  if (Array.isArray(reply) || !reply.error || Array.isArray(message)) return 200
+  const code = reply.error.code
+  if (code === ProtocolError.UnsupportedProtocolVersion) return 400
+  if (requestedVersion((message as { params?: unknown }).params) === undefined) return 200
+  return code === RpcError.MethodNotFound ? 404 : 200
 }
 
 function send(res: ServerResponse, status: number, payload: unknown): void {

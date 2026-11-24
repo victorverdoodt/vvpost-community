@@ -398,7 +398,7 @@ describe('protocolo MCP', () => {
     const reply = await rpc('initialize', { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 't', version: '1' } })
     expect(reply.result).toMatchObject({ protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'vvpost' } })
     const old = await rpc('initialize', { protocolVersion: '1999-01-01' })
-    expect((old.result as { protocolVersion: string }).protocolVersion).toBe('2025-06-18')
+    expect((old.result as { protocolVersion: string }).protocolVersion).toBe('2025-11-25')
     expect(await server.handle({ jsonrpc: '2.0', method: 'notifications/initialized' })).toBeNull()
   })
 
