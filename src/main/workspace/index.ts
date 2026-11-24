@@ -24,6 +24,8 @@ import {
   mergeSecrets,
   redactFiles,
   redactedText,
+  secretInventory,
+  secretVaultDir,
   type SecretValue
 } from './vault'
 
@@ -200,28 +202,33 @@ export async function saveSecrets(dir: string, values: SecretValue[], root = dir
   const filled = values
     .map((v) => ({ environmentId: String(v?.environmentId), variable: String(v?.variable), value: String(v?.value ?? '') }))
     .filter((v) => v.value && missing.has(`${v.environmentId}\0${v.variable}`))
-  await mergeSecrets(dir, filled)
+  // Num projeto, o segredo herdado do Compartilhado vai para o cofre da raiz, onde ele é declarado.
+  const byVault = new Map<string, SecretValue[]>()
+  for (const v of filled) {
+    const target = (await secretVaultDir(dir, v.environmentId, v.variable)) ?? dir
+    byVault.set(target, [...(byVault.get(target) ?? []), v])
+  }
+  for (const [target, list] of byVault) await mergeSecrets(target, list)
   return readState(root)
 }
 
 /**
  * Troca o valor de um segredo que já está no vault local (Secrets, "Alterar valor"). Só uma
  * variável declarada com isSecret no ambiente; o arquivo versionado continua com
- * __REQUIRED_SECRET__. O valor novo vai direto para o vault, sem voltar ao renderer.
+ * __REQUIRED_SECRET__. O valor novo vai direto para o vault, sem voltar ao renderer. Num projeto,
+ * o segredo herdado do Compartilhado troca no cofre onde o valor está.
  */
 export async function replaceSecret(dir: string, input: SecretValue, root = dir): Promise<WorkspaceState> {
   const value = String(input?.value ?? '')
   if (!value) throw new Error('O novo valor está vazio.')
   const environmentId = String(input?.environmentId)
   const variable = String(input?.variable)
-  let declared: Environment | undefined
-  for (const path of await listEnvironmentFiles(dir)) {
-    const env = await readEnvironment(dir, path)
-    if (env?.id === environmentId) declared = env
-  }
+  const inventory = await secretInventory(dir)
+  const declared = inventory.environments.find((e) => e.id === environmentId)
   if (!declared) throw new Error(`O ambiente "${environmentId}" não existe no workspace.`)
-  if (!declared.variables[variable]?.isSecret) throw new Error(`${variable} não é um segredo de ${declared.name}.`)
-  await mergeSecrets(dir, [{ environmentId, variable, value }])
+  if (!declared.variables.some((v) => v.name === variable && v.isSecret)) throw new Error(`${variable} não é um segredo de ${declared.name}.`)
+  const target = (await secretVaultDir(dir, environmentId, variable)) ?? dir
+  await mergeSecrets(target, [{ environmentId, variable, value }])
   return readState(root)
 }
 

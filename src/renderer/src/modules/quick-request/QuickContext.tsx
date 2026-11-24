@@ -3,6 +3,7 @@ import { FolderOpen, Network, ShieldCheck, TriangleAlert, Workflow } from 'lucid
 import { Badge, Button, ContextSelector, cx } from '../../design-system'
 import type { useWorkspace } from '../../panels/useWorkspace'
 import { useShortWindow } from '../../lib/short-window'
+import { navigate } from '../../lib/navigate'
 import type { Endpoint } from './draft'
 
 /**
@@ -173,14 +174,17 @@ export function QuickContext(props: {
 
       {(missing.length > 0 || workspace.issues.length > 0 || connector?.error) && (
         <div className="flex w-full flex-wrap gap-x-4 gap-y-1 text-xs">
-          {missing.length > 0 && (
-            <span
-              className="flex items-center gap-1.5 text-warning"
-              title="Preencha no módulo Secrets ou pelo assistente do Git"
+          {missing.length > 0 && environment && (
+            // Leva ao Secrets, no ambiente da requisição e no primeiro segredo pendente, para preencher.
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-left text-warning underline-offset-2 hover:underline"
+              title={`Preencher no Secrets (${environment.name})`}
+              onClick={() => navigate({ module: 'secrets', environmentId: environment.id, variable: missing[0] })}
             >
-              <TriangleAlert size={13} aria-hidden />
+              <TriangleAlert size={13} className="shrink-0" aria-hidden />
               Segredos sem valor: {missing.join(', ')}
-            </span>
+            </button>
           )}
           {workspace.issues.length > 0 && (
             <span

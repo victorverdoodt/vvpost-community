@@ -118,7 +118,7 @@ import { loadEnterpriseModule, type OrganizationRef } from './secret-engine/back
 import type { RunningEngine } from './secret-engine/server'
 import type { RunningWebhookServer } from './webhooks/server'
 import type { WebhookEvent } from '@vvpost/core/types'
-import { REQUIRED_SECRET, type SecretsEngineMode } from '@vvpost/schemas'
+import type { SecretsEngineMode } from '@vvpost/schemas'
 import type { ProjectOp } from './project/ops'
 import { watchWorkspace, type WorkspaceWatcher } from './workspace/watch'
 
@@ -2893,9 +2893,10 @@ export function revealSecret(environmentId: unknown, variable: unknown, copy: bo
   return attempt(async () => {
     const dir = await currentWorkspaceDir()
     if (!dir) throw new Error('Nenhum workspace aberto.')
-    const { readSecretsStore } = await import('./workspace/vault')
-    const value = (await readSecretsStore(dir))[String(environmentId)]?.[String(variable)]
-    if (value === undefined || value === REQUIRED_SECRET) throw new Error('Este segredo não tem valor no vault local.')
+    // Num projeto, o segredo herdado do Compartilhado tem o valor no cofre da raiz.
+    const { readSecretValue } = await import('./workspace/vault')
+    const value = await readSecretValue(dir, String(environmentId), String(variable))
+    if (value === undefined) throw new Error('Este segredo não tem valor no vault local.')
     if (!copy) return { value }
     await clipboard.writeText(value)
     if (clipboardTimer) clearTimeout(clipboardTimer)

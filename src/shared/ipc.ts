@@ -1023,7 +1023,13 @@ export interface SecretInventory {
     id: string
     name: string
     file: string
-    secrets: { variable: string; state: SecretState; description?: string; placeholder?: string }[]
+    /**
+     * Num projeto, o ambiente só existe no Compartilhado (a raiz): vale aqui, mas renomear,
+     * excluir e editar variáveis se faz na raiz. Ausente na raiz e nos ambientes do projeto.
+     */
+    shared?: true
+    /** `shared`: o segredo vem do ambiente do Compartilhado; o valor fica no cofre da raiz. */
+    secrets: { variable: string; state: SecretState; description?: string; placeholder?: string; shared?: true }[]
     /** O arquivo não passa no schema (ex.: segredo em texto puro): o app não edita até corrigir. */
     problem?: string
     /**
@@ -1036,6 +1042,8 @@ export interface SecretInventory {
       isSecret: boolean
       value?: string | number | boolean
       description?: string
+      /** Declarada só no ambiente do Compartilhado (o projeto herda): edita-se na raiz. */
+      shared?: true
     }[]
   }[]
 }
