@@ -496,7 +496,7 @@ export default function DocsEditor(props: {
               aria-label="Prévia do documento"
               onClick={view === 'split' ? sync.onPreviewClick : undefined}
               onDoubleClick={jumpToSource}
-              style={accentStyle(config.theme?.primary)}
+              style={accentStyle(config.theme?.primary ?? (config.theme?.tokens ? project?.brand?.primary : undefined))}
             >
               {compiled ? (
                 <Markdown source={compiled.printMarkdown} lines className="doc-composed mx-auto max-w-[860px]" />
@@ -679,6 +679,8 @@ function TemplateForm({
       </select>
     </label>
   )
+  // Com theme.tokens, o que o modelo não escreve vem dos tokens da marca (brand/*.tokens.json).
+  const brand = config.theme?.tokens ? project.brand : undefined
   const color = (label: string, field: 'primary' | 'heading' | 'text', fallback: string) => (
     <label className="grid grid-cols-[8rem_auto_1fr] items-center gap-2">
       <span className="text-muted">{label}</span>
@@ -686,18 +688,24 @@ function TemplateForm({
         type="color"
         aria-label={label}
         className="h-7 w-10 cursor-pointer rounded border border-border bg-transparent"
-        value={config.theme?.[field] ?? fallback}
+        value={config.theme?.[field] ?? brand?.[field] ?? fallback}
         onChange={(e) => nested('theme', field, e.target.value)}
       />
       {config.theme?.[field] ? (
         <button type="button" className="justify-self-start text-muted underline" onClick={() => nested('theme', field, undefined)}>
-          usar o padrão
+          {brand?.[field] ? 'usar o dos tokens' : 'usar o padrão'}
         </button>
       ) : (
-        <span className="text-faint">padrão</span>
+        <span className="text-faint">{brand?.[field] ? 'dos tokens' : 'padrão'}</span>
       )}
     </label>
   )
+  const useTokens = (on: boolean) => {
+    const theme = { ...(config.theme ?? {}) }
+    if (on) theme.tokens = {}
+    else delete theme.tokens
+    set('theme', Object.keys(theme).length ? theme : undefined)
+  }
   const check = (label: string, value: boolean, onValue: (v: boolean) => void) => (
     <label className="flex items-center gap-2">
       <input type="checkbox" checked={value} onChange={(e) => onValue(e.target.checked)} />
@@ -754,11 +762,19 @@ function TemplateForm({
         </div>
       </Group>
       <Group title="Estilo">
+        {(project.brand || config.theme?.tokens) && (
+          <>
+            {check(`Cores e fontes dos tokens da marca${project.brand ? ` (${project.brand.file})` : ''}`, !!config.theme?.tokens, useTokens)}
+            {config.theme?.tokens && !project.brand && <p className="text-faint">O projeto não tem brand/*.tokens.json: valem as cores e fontes abaixo.</p>}
+          </>
+        )}
         {color('Cor de destaque', 'primary', '#8b7cff')}
         {color('Cor dos títulos', 'heading', '#11141a')}
         {color('Cor do texto', 'text', '#1d2230')}
-        {select('Fonte do texto', config.theme?.font ?? 'sans', FONT_OPTIONS, (v) => nested('theme', 'font', v === 'sans' ? undefined : v))}
-        {select('Fonte dos títulos', config.theme?.headingFont ?? '', [['', 'a do texto'], ...FONT_OPTIONS], (v) => nested('theme', 'headingFont', v))}
+        {brand?.font
+          ? select('Fonte do texto', config.theme?.font ?? '', [['', 'a dos tokens'], ...FONT_OPTIONS], (v) => nested('theme', 'font', v))
+          : select('Fonte do texto', config.theme?.font ?? 'sans', FONT_OPTIONS, (v) => nested('theme', 'font', v === 'sans' ? undefined : v))}
+        {select('Fonte dos títulos', config.theme?.headingFont ?? '', [['', brand?.headingFont ? 'a dos tokens' : 'a do texto'], ...FONT_OPTIONS], (v) => nested('theme', 'headingFont', v))}
       </Group>
       <Group title="Página">
         {select('Tamanho', config.page?.size ?? 'A4', [['A4', 'A4'], ['Letter', 'Carta'], ['Legal', 'Ofício']], (v) => nested('page', 'size', v === 'A4' ? undefined : v))}

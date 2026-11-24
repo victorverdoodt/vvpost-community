@@ -1529,7 +1529,15 @@ async function docsTemplate(dir: string, config?: DocsConfig) {
       issues.push({ file: use.logo, message: (err as Error).message })
     }
   }
-  return { project, config: use, logo, issues }
+  // Os tokens da marca (theme.tokens): resolvidos sempre que o projeto tem um arquivo, para o editor
+  // mostrar o que viria; o PDF e a visualização só usam com theme.tokens no modelo.
+  const resolved = await (await import('@vvpost/core/brand')).loadDocsBrand(dir, use).catch((err: Error) => ({
+    theme: null,
+    issues: [{ file: 'brand', message: err.message }]
+  }))
+  if (use.theme?.tokens) issues.push(...resolved.issues)
+  const brand = resolved.theme ?? undefined
+  return { project, config: use, logo, issues, ...(brand && { brand }) }
 }
 
 async function generateDocsFor(scope: DocScope, generated = false, diagramOrigins = false): Promise<GeneratedDocs & { ws: LoadedWorkspace }> {
@@ -1540,7 +1548,7 @@ async function generateDocsFor(scope: DocScope, generated = false, diagramOrigin
   const flowCatalog = await flows.loadFlows(dir)
   const options = { generator: `VVPost ${app.getVersion()}` }
   const result = await docs.generateDocumentation(ws, flowCatalog, scope, options)
-  const { project, logo } = await docsTemplate(dir)
+  const { project, logo, brand } = await docsTemplate(dir)
   // O documento do projeto (docs/projeto.md) é a documentação do projeto quando existe.
   const composed =
     scope.kind === 'project' && project.source !== null && !generated
@@ -1552,7 +1560,7 @@ async function generateDocsFor(scope: DocScope, generated = false, diagramOrigin
           diagramOrigins
         })
       : undefined
-  return { ...result, template: { config: project.config, ...(logo && { logo }) }, ...(composed && { composed }), ws }
+  return { ...result, template: { config: project.config, ...(logo && { logo }), ...(brand && { brand }) }, ...(composed && { composed }), ws }
 }
 
 /** Documentação de um nível da hierarquia: o modelo para a visualização e o Markdown. */
@@ -1612,7 +1620,7 @@ async function printableDocs(title: string, html: string, cover: boolean, config
   const layout = printLayout(
     template.config,
     { title, project: basename(dir), date: new Date().toLocaleDateString('pt-BR'), ...(template.logo && { logo: template.logo }) },
-    { cover: cover && template.config.cover !== false }
+    { cover: cover && template.config.cover !== false, ...(template.config.theme?.tokens && template.brand && { brand: template.brand }) }
   )
   const page = pdf.printDocument(title, html, layout)
   if (sanitizer.leaks(page.replace(/data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+/g, '')) || sanitizer.leaks(title)) {
@@ -1652,7 +1660,7 @@ export function docsProject(): Promise<WorkspaceResult<DocsProjectState>> {
     const dir = await currentWorkspaceDir()
     if (!dir) throw new Error('Nenhum workspace aberto.')
     const docs = await getDocs()
-    const [{ project, logo, issues }, files, templates] = await Promise.all([
+    const [{ project, logo, issues, brand }, files, templates] = await Promise.all([
       docsTemplate(dir),
       docs.listDocsFiles(dir),
       docs.listDocTemplates(dir, userDocTemplatesDir())
@@ -1660,6 +1668,7 @@ export function docsProject(): Promise<WorkspaceResult<DocsProjectState>> {
     return {
       config: project.config,
       ...(logo && { logo }),
+      ...(brand && { brand }),
       configExists: project.configExists,
       configIssues: [...issues, ...templates.issues],
       sourceFile: project.sourceFile,

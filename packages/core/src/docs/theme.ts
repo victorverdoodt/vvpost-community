@@ -10,6 +10,18 @@ export interface PrintContext {
   logo?: string
 }
 
+/**
+ * Cores e fontes vindas dos tokens da marca (`theme.tokens`, resolvidas por `@vvpost/core/brand`):
+ * as cores já em #RRGGBB e as fontes como pilha de CSS. O que o modelo escreve no theme ganha delas.
+ */
+export interface PrintBrand {
+  primary?: string
+  heading?: string
+  text?: string
+  font?: string
+  headingFont?: string
+}
+
 export interface PrintLayout {
   /** CSS da página de impressão. */
   css: string
@@ -66,14 +78,27 @@ export function fillPlaceholders(text: string, config: DocsConfig, ctx: PrintCon
   })
 }
 
-function bandTemplate(band: DocsBand | undefined, config: DocsConfig, ctx: PrintContext, side: number): string {
+/** Pilha de fonte da marca: só nomes entre aspas, palavras e vírgulas (vem do resolvedor; aqui é a segunda trava). */
+const STACK_ITEM = String.raw`(?:"[\p{L}\p{N} ._-]{1,80}"|-?[A-Za-z][A-Za-z-]{0,40})`
+const SAFE_STACK = new RegExp(`^${STACK_ITEM}(?:, ${STACK_ITEM})*$`, 'u')
+const stack = (value: string | undefined) => (value && value.length <= 400 && SAFE_STACK.test(value) ? value : undefined)
+
+/** As fontes do texto e dos títulos: a do modelo, senão a da marca, senão a sans. */
+function fonts(config: DocsConfig, brand: PrintBrand | undefined): { body: string; headings: string } {
+  const t = config.theme ?? {}
+  const body = t.font ? FONTS[t.font] : (stack(brand?.font) ?? FONTS.sans)
+  const headings = t.headingFont ? FONTS[t.headingFont] : (stack(brand?.headingFont) ?? body)
+  return { body, headings }
+}
+
+function bandTemplate(band: DocsBand | undefined, config: DocsConfig, ctx: PrintContext, side: number, font: string): string {
   if (!band || !(band.left || band.center || band.right || (band.logo && band.logo !== 'none' && ctx.logo))) return '<span></span>'
   const logo = ctx.logo && band.logo && band.logo !== 'none' ? `<img src="${escapeHtml(ctx.logo)}" style="height:16pt;max-width:120pt;object-fit:contain" alt="">` : ''
   const cell = (text: string | undefined, align: string, withLogo: boolean) =>
     `<div style="flex:1;display:flex;align-items:center;gap:6pt;justify-content:${align};min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">` +
     `${withLogo && align === 'flex-start' ? logo : ''}${text ? `<span>${fillPlaceholders(text, config, ctx)}</span>` : ''}${withLogo && align === 'flex-end' ? logo : ''}</div>`
   return (
-    `<div style="width:100%;font-family:${escapeHtml(FONTS[config.theme?.font ?? 'sans'])};font-size:7.5pt;color:#7d8498;padding:0 ${side}in;display:flex;align-items:center;gap:8pt;-webkit-print-color-adjust:exact">` +
+    `<div style="width:100%;font-family:${escapeHtml(font)};font-size:7.5pt;color:#7d8498;padding:0 ${side}in;display:flex;align-items:center;gap:8pt;-webkit-print-color-adjust:exact">` +
     cell(band.left, 'flex-start', band.logo === 'left') +
     cell(band.center, 'center', false) +
     cell(band.right, 'flex-end', band.logo === 'right') +
@@ -123,18 +148,20 @@ function mermaidInit(primary: string, text: string): string {
   return `%%{init: ${JSON.stringify({ theme: 'base', themeVariables: vars })}}%%`
 }
 
-export function printLayout(config: DocsConfig, ctx: PrintContext, options: { cover?: boolean } = {}): PrintLayout {
+export function printLayout(config: DocsConfig, ctx: PrintContext, options: { cover?: boolean; brand?: PrintBrand } = {}): PrintLayout {
   const t = config.theme ?? {}
-  const primary = color(t.primary, '#8b7cff')
-  const heading = color(t.heading, '#11141a')
-  const text = color(t.text, '#1d2230')
-  const body = FONTS[t.font ?? 'sans']
-  const headings = FONTS[t.headingFont ?? t.font ?? 'sans']
+  const brand = options.brand
+  const primary = color(t.primary, color(brand?.primary, '#8b7cff'))
+  const heading = color(t.heading, color(brand?.heading, '#11141a'))
+  const text = color(t.text, color(brand?.text, '#1d2230'))
+  const { body, headings } = fonts(config, brand)
   const side = MARGINS[config.page?.margins ?? 'normal']
   const header = config.header
   const footer = config.footer ?? DEFAULT_FOOTER
-  const hasHeader = bandTemplate(header, config, ctx, side) !== '<span></span>'
-  const hasFooter = bandTemplate(footer, config, ctx, side) !== '<span></span>'
+  const headerTemplate = bandTemplate(header, config, ctx, side, body)
+  const footerTemplate = bandTemplate(footer, config, ctx, side, body)
+  const hasHeader = headerTemplate !== '<span></span>'
+  const hasFooter = footerTemplate !== '<span></span>'
   const margins = { top: hasHeader ? side + BAND_INCHES : side, bottom: hasFooter ? side + 0.1 : side, left: side, right: side }
 
   const css = `
@@ -193,8 +220,8 @@ figure.mermaid-diagram.mermaid-tall svg { max-height: none; }
     css,
     cover,
     mermaidInit: mermaidInit(primary, text),
-    headerTemplate: bandTemplate(header, config, ctx, side),
-    footerTemplate: bandTemplate(footer, config, ctx, side),
+    headerTemplate,
+    footerTemplate,
     pdf: {
       pageSize: config.page?.size ?? 'A4',
       landscape: config.page?.orientation === 'landscape',

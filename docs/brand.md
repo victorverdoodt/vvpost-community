@@ -108,6 +108,36 @@ rules:
 A página da marca (`docs/marca.md`) junta as tabelas com o que não é token: o uso de cada cor, o tom
 de voz, as regras de componentes.
 
+## Na documentação e no PDF
+
+A documentação do projeto pode seguir a mesma marca sem copiar as cores para o
+`vvpost.docs.json`: com `theme.tokens`, o PDF (cores dos títulos, do texto, das citações, da capa,
+dos diagramas e as fontes), a cor de destaque da visualização e a do site exportado vêm dos tokens.
+
+```json
+{ "theme": { "tokens": {} } }
+```
+
+Sem nomes, valem os de costume, nesta ordem:
+
+| Campo | Tokens procurados |
+| --- | --- |
+| `primary` (destaque) | `color.primary`, `color.accent`, `color.brand` |
+| `text` | `color.text`, `color.fg`, `color.foreground` |
+| `heading` | `color.heading`, `color.title`; senão a do texto |
+| `font` (`fontFamily`) | `font.body`, `font.text`, `font.ui`, `font.sans`, `font.base` |
+| `headingFont` (`fontFamily`) | `font.heading`, `font.display`, `font.title`; senão a do texto |
+
+Para outro nome, escreva o token: `{ "tokens": { "primary": "color.rose", "mode": "light" } }`. O
+`mode` escolhe um modo do arquivo; o papel do PDF é branco, então use o modo claro quando o padrão
+da marca for escuro. Uma cor com transparência vai por cima do branco. A fonte entra com as
+alternativas de sempre atrás, para a máquina que não a tem instalada. Um token que não existe ou não
+é do tipo certo aparece nos problemas do modelo (aba **Estilo**), e o resto continua valendo.
+
+Uma cor ou fonte escrita no próprio `theme` ganha do token: serve para o PDF que precisa de outra
+cor. Na aba **Estilo** do editor de documentação, **Cores e fontes dos tokens da marca** liga o
+`theme.tokens`, e os campos mostram o valor que vem dos tokens.
+
 ## Para o agente
 
 `get_brand` no [MCP](mcp.md) devolve os tokens resolvidos numa linha por token, com o uso no código:
