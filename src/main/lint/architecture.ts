@@ -14,7 +14,7 @@ import {
 } from '@vvpost/core/docs/architecture'
 import type { LintWorkspaceDocument } from '@vvpost/core/lint'
 import { plainFlows } from '@vvpost/core/flows/workspace'
-import { git } from '../workspace/git'
+import { catFiles, git } from '../workspace/git'
 
 /**
  * A documentação de arquitetura além do que o core vê no texto (docs/documentation.md):
@@ -72,6 +72,57 @@ async function showAt(dir: string, commit: string, file: string): Promise<string
   return text
 }
 
+/**
+ * Os arquivos do commit (caminhos relativos à pasta do projeto): um `git ls-tree -r` por commit em vez de
+ * um por conector. As páginas costumam ter o mesmo último commit, e no Windows cada processo do Git
+ * custa ~100 ms: num projeto com 30 conectores em fluxos, o lint passava 10 s esperando o Git.
+ */
+const trees = new Map<string, Promise<string[]>>()
+
+function filesAt(dir: string, commit: string): Promise<string[]> {
+  const key = `${dir}\0${commit}`
+  let files = trees.get(key)
+  if (!files) {
+    if (trees.size > 20) trees.clear()
+    files = git(dir, ['ls-tree', '-r', '-z', '--name-only', commit, '--', '.'])
+      .then((out) => out.split('\0').filter(Boolean))
+      .catch(() => [])
+    trees.set(key, files)
+  }
+  return files
+}
+
+/** As páginas com mudança não commitada, num `git status` só (caminhos relativos à pasta do projeto). */
+async function uncommitted(dir: string, files: string[]): Promise<Set<string>> {
+  if (!files.length) return new Set()
+  const prefix = (await git(dir, ['rev-parse', '--show-prefix'])).trim()
+  const out = await git(dir, ['status', '--porcelain', '-z', '--', ...files])
+  const dirty = new Set<string>()
+  const tokens = out.split('\0')
+  for (let i = 0; i < tokens.length; i++) {
+    const entry = tokens[i]!
+    if (entry.length < 4) continue
+    // Os caminhos do porcelain são relativos à raiz do repositório; renomeado e copiado trazem a origem em seguida.
+    for (const path of /^[RC]/.test(entry) ? [entry.slice(3), tokens[++i] ?? ''] : [entry.slice(3)]) {
+      if (path.startsWith(prefix)) dirty.add(path.slice(prefix.length))
+    }
+  }
+  return dirty
+}
+
+/** A pasta do caminho com "/", como o dirname dá ("." na raiz). */
+const parentOf = (path: string) => (path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '.')
+
+/** Lê de uma vez, para o cache do showAt, os arquivos dos commits que ainda não estão nele. */
+async function prefetchShown(dir: string, wanted: readonly { commit: string; file: string }[]): Promise<void> {
+  const missing = [...new Map(wanted.map((w) => [`${dir}\0${w.commit}\0${w.file}`, w])).entries()].filter(([key]) => !shown.has(key))
+  if (!missing.length) return
+  const prefix = (await git(dir, ['rev-parse', '--show-prefix'])).trim()
+  const texts = await catFiles(dir, missing.map(([, w]) => `${w.commit}:${prefix}${w.file}`))
+  if (shown.size + missing.length > 2000) shown.clear()
+  missing.forEach(([key], i) => shown.set(key, texts[i] ?? null))
+}
+
 const parse = (text: string | null): unknown => {
   if (text === null) return null
   try {
@@ -111,11 +162,34 @@ export async function historyDrift(dir: string, ws: LoadedWorkspace, flows: Flow
     for (const c of catalog.connectors) if (p.text.includes(c.id)) cite(p.file, `connector:${c.id}`, undefined)
   }
   const items: DriftItem[] = []
-  for (const [file, refs] of [...pages].slice(0, MAX_PAGES)) {
-    if ((await git(dir, ['status', '--porcelain', '--', file]).catch(() => 'x')).trim()) continue
+  const checked = [...pages].slice(0, MAX_PAGES)
+  // Sem o status, nenhuma página conta como em dia (como antes, quando cada status falhava sozinho).
+  const dirty = await uncommitted(dir, checked.map(([file]) => file)).catch(() => null)
+  if (!dirty) return items
+  const commits = new Map<string, [commit: string, date: string]>()
+  for (const [file] of checked) {
+    if (dirty.has(file)) continue
     const last = (await git(dir, ['log', '-1', '--format=%H %cs', '--', file]).catch(() => '')).trim()
-    if (!last) continue
-    const [commit, date] = last.split(' ') as [string, string]
+    if (last) commits.set(file, last.split(' ') as [string, string])
+  }
+  // Os arquivos de conector e de fluxo como estavam em cada commit, num cat-file só.
+  const sources = (id: string, kind: string) =>
+    kind === 'connector' ? (ws.flowSources?.get(id) ?? ws.connectorFiles.get(id)) : flows.flows.find((f) => f.flow.id === id)?.file
+  await prefetchShown(
+    dir,
+    checked.flatMap(([file, refs]) => {
+      const at = commits.get(file)
+      if (!at) return []
+      return [...refs.keys()].slice(0, MAX_REFS).flatMap((key) => {
+        const source = sources(key.slice(key.indexOf(':') + 1), key.slice(0, key.indexOf(':')))
+        return source && !source.startsWith('../') && !source.startsWith('shared:') ? [{ commit: at[0], file: source }] : []
+      })
+    })
+  ).catch(() => undefined)
+  for (const [file, refs] of checked) {
+    const at = commits.get(file)
+    if (!at) continue
+    const [commit, date] = at
     const marked = new Set<string>()
     for (const [key, line] of [...refs].slice(0, MAX_REFS)) {
       const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
@@ -149,7 +223,7 @@ async function connectorChanges(dir: string, ws: LoadedWorkspace, id: string, co
     const folder = dirname(file)
     const base = file.slice(folder.length + 1)
     const names = (list: string[]) => list.map((f) => f.slice(f.lastIndexOf('/') + 1)).filter((f) => FLOW_FILE.test(f) && f !== base).map((f) => f.replace(FLOW_FILE, '')).sort()
-    const then = names((await git(dir, ['ls-tree', '--name-only', commit, `./${folder}/`]).catch(() => '')).split('\n').filter(Boolean))
+    const then = names((await filesAt(dir, commit)).filter((f) => parentOf(f) === folder))
     const now = names(await readdir(join(dir, folder)).catch(() => []))
     before.endpoints = then.map((e) => `${e}`)
     current.endpoints = now.map((e) => `${e}`)
