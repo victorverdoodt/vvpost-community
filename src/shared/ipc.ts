@@ -300,6 +300,21 @@ export interface GeneratedDocs {
 export interface DocsTemplate {
   config: DocsConfig
   logo?: string
+  /**
+   * Cores (#RRGGBB) e fontes (pilha de CSS) dos tokens da marca, quando o projeto tem um arquivo de
+   * tokens. Valem na visualização e no PDF só com theme.tokens no modelo; o editor mostra o que viria.
+   */
+  brand?: DocsTemplateBrand
+}
+
+export interface DocsTemplateBrand {
+  primary?: string
+  heading?: string
+  text?: string
+  font?: string
+  headingFont?: string
+  /** O arquivo de tokens, relativo ao projeto. */
+  file: string
 }
 
 /** Modelo e documento-fonte do projeto, para o editor de documentação. */

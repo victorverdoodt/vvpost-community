@@ -27,7 +27,7 @@ export {
   type DocsProject
 } from './compose'
 export type * from './model'
-export { escapeHtml, fillPlaceholders, printLayout, type PrintContext, type PrintLayout } from './theme'
+export { escapeHtml, fillPlaceholders, printLayout, type PrintBrand, type PrintContext, type PrintLayout } from './theme'
 export {
   applyDocTemplate,
   BUILTIN_DOC_TEMPLATES,

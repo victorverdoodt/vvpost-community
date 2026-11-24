@@ -1247,10 +1247,14 @@ const exportDocs: McpTool = {
       let logoUrl: string | undefined
       if (project.config.logo) logoUrl = await docs.readDocsLogo(ctx.workspaceDir, project.config.logo).catch(() => undefined)
       logo = !!logoUrl
+      // theme.tokens: as cores e as fontes do PDF vêm dos tokens da marca.
+      const brand = project.config.theme?.tokens
+        ? ((await (await import('@vvpost/core/brand')).loadDocsBrand(ctx.workspaceDir, project.config).catch(() => null))?.theme ?? undefined)
+        : undefined
       const layout = printLayout(
         project.config,
         { title, project: name, date: new Date().toLocaleDateString('pt-BR'), ...(logoUrl && { logo: logoUrl }) },
-        { cover: useProject && project.config.cover !== false }
+        { cover: useProject && project.config.cover !== false, ...(brand && { brand }) }
       )
       const { printInSubprocess } = await import('../docs/print-spawn')
       try {

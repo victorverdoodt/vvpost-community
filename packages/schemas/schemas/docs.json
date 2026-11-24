@@ -39,7 +39,21 @@
         "heading": { "$ref": "#/$defs/color", "description": "Cor dos títulos." },
         "text": { "$ref": "#/$defs/color", "description": "Cor do texto." },
         "font": { "$ref": "#/$defs/font", "description": "Fonte do texto." },
-        "headingFont": { "$ref": "#/$defs/font", "description": "Fonte dos títulos. Padrão: a do texto." }
+        "headingFont": { "$ref": "#/$defs/font", "description": "Fonte dos títulos. Padrão: a do texto." },
+        "tokens": {
+          "title": "DocsThemeTokens",
+          "type": "object",
+          "description": "Cores e fontes do PDF, da visualização e do site lidas do arquivo de tokens da marca (brand/*.tokens.json). Cada campo é o nome de um token; sem o campo, vale o nome de costume (color.primary, color.heading, color.text, font.body, font.heading). Uma cor ou fonte escrita no theme ganha do token.",
+          "additionalProperties": false,
+          "properties": {
+            "primary": { "$ref": "#/$defs/tokenName", "description": "Token da cor de destaque. Padrão: color.primary, color.accent ou color.brand." },
+            "heading": { "$ref": "#/$defs/tokenName", "description": "Token da cor dos títulos. Padrão: color.heading, senão a do texto." },
+            "text": { "$ref": "#/$defs/tokenName", "description": "Token da cor do texto. Padrão: color.text, color.fg ou color.foreground." },
+            "font": { "$ref": "#/$defs/tokenName", "description": "Token (fontFamily) da fonte do texto. Padrão: font.body, font.text, font.ui ou font.sans." },
+            "headingFont": { "$ref": "#/$defs/tokenName", "description": "Token (fontFamily) da fonte dos títulos. Padrão: font.heading ou font.display, senão a do texto." },
+            "mode": { "type": "string", "maxLength": 60, "description": "Modo do arquivo de tokens (ex.: light). Padrão: o valor de $value; o papel do PDF é branco, então use o modo claro quando o padrão for escuro." }
+          }
+        }
       }
     },
     "page": {
@@ -57,6 +71,7 @@
   "$defs": {
     "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
     "font": { "enum": ["sans", "serif", "mono"] },
+    "tokenName": { "type": "string", "pattern": "^[^.{}\\s][^{}\\s]*$", "maxLength": 200 },
     "band": {
       "title": "DocsBand",
       "type": "object",

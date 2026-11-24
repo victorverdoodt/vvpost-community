@@ -229,7 +229,8 @@ function ComposedDocument({ source, doc }: { source: string; doc: ApiDocument })
 
 /** A cor de destaque do modelo nos títulos e citações da visualização (o resto segue o tema do app). */
 function accentStyle(template: DocsTemplate | undefined): React.CSSProperties | undefined {
-  const primary = template?.config.theme?.primary
+  const c = template?.config
+  const primary = c?.theme?.primary ?? (c?.theme?.tokens ? template?.brand?.primary : undefined)
   return primary && /^#[0-9A-Fa-f]{6}$/.test(primary) ? ({ '--doc-accent': primary } as React.CSSProperties) : undefined
 }
 

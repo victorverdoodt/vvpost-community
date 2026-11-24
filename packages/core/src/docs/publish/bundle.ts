@@ -307,6 +307,12 @@ export async function buildPublishBundle(
   if (cfg.version) meta.version = sanitizer.text(cfg.version)
   if (cfg.organization) meta.organization = sanitizer.text(cfg.organization)
   if (cfg.theme?.primary && /^#[0-9A-Fa-f]{6}$/.test(cfg.theme.primary)) meta.primary = cfg.theme.primary
+  else if (cfg.theme?.tokens) {
+    // theme.tokens: a cor de destaque do site vem dos tokens da marca.
+    const { loadDocsBrand } = await import('../../brand/docs-theme')
+    const primary = (await loadDocsBrand(ws.dir, cfg).catch(() => null))?.theme?.primary
+    if (primary && /^#[0-9A-Fa-f]{6}$/.test(primary)) meta.primary = primary
+  }
   if (cfg.logo) {
     const ext = /\.([A-Za-z]+)$/.exec(cfg.logo)?.[1]?.toLowerCase() ?? ''
     const type = IMAGE_TYPES[ext]

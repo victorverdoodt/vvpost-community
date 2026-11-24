@@ -12,7 +12,7 @@ por diretivas, sempre atualizados. O documento sai no app (visualização e PDF)
 
 | Arquivo | O que guarda |
 | --- | --- |
-| `vvpost.docs.json` | O modelo: `title`, `subtitle`, `organization`, `version`, `logo` (imagem do workspace), `cover`, `toc`, `numberHeadings`, `theme` (cores e fontes), `page` (tamanho, orientação, margens), `header` e `footer` (esquerda, centro, direita e logo), `methodology` (o nome do último modelo aplicado, só para mostrar). Schema `docs` em [packages/schemas](../packages/schemas/README.md). |
+| `vvpost.docs.json` | O modelo: `title`, `subtitle`, `organization`, `version`, `logo` (imagem do workspace), `cover`, `toc`, `numberHeadings`, `theme` (cores e fontes, ou `theme.tokens` para lê-las dos [tokens da marca](brand.md#na-documentação-e-no-pdf)), `page` (tamanho, orientação, margens), `header` e `footer` (esquerda, centro, direita e logo), `methodology` (o nome do último modelo aplicado, só para mostrar). Schema `docs` em [packages/schemas](../packages/schemas/README.md). |
 | `docs/projeto.md` | O documento-fonte (ou o arquivo em `source` do modelo). |
 | `docs/**.md` | Páginas de nível de projeto (visão geral, arquitetura, guias, decisões) que o documento inclui. |
 | `*.doc-template.vvpost.json` | Modelos de documentação do projeto. |
