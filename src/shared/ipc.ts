@@ -49,6 +49,7 @@ import type {
 import type { ApiDocument, DocScope } from '@vvpost/core/docs/model'
 import type { DocDiagnostic, DocsMarkdownFile } from '@vvpost/core/docs/compose'
 import type { DocTemplateOrigin } from '@vvpost/core/docs/templates'
+import type { BrandFileView, BrandItem } from '@vvpost/core/brand'
 import type { DocsConfig } from '@vvpost/schemas'
 import type { RequestPayload, RequestScripts } from '@vvpost/core/types'
 import type { RealtimeEvent, RealtimeOpenInput } from '@vvpost/core/realtime'
@@ -57,6 +58,7 @@ import type { RealtimeEvent, RealtimeOpenInput } from '@vvpost/core/realtime'
 export type * from '@vvpost/core/docs/model'
 export type { DocDiagnostic, DocsMarkdownFile } from '@vvpost/core/docs/compose'
 export type { DocTemplateOrigin } from '@vvpost/core/docs/templates'
+export type { BrandFileView, BrandItem, BrandTokenView } from '@vvpost/core/brand'
 export type { DocsBand, DocsConfig } from '@vvpost/schemas'
 export type { RealtimeEvent, RealtimeMessage, RealtimeOpenInput, RealtimeProtocol, RealtimeStatus } from '@vvpost/core/realtime'
 export { HTTP_METHODS } from '@vvpost/core/types'
@@ -210,6 +212,9 @@ export const IpcChannel = {
   DocsSaveDiagram: 'docs:save-diagram',
   DiagramCatalog: 'docs:diagram-catalog',
   DocsFiles: 'docs:files',
+  BrandRead: 'brand:read',
+  BrandFindings: 'brand:findings',
+  BrandSave: 'brand:save',
   DocsReadMarkdownFile: 'docs:read-markdown-file',
   DocsSaveMarkdownFile: 'docs:save-markdown-file',
   DocsRenameFile: 'docs:rename-file',
@@ -335,6 +340,8 @@ export interface DocsFileList {
   diagrams: string[]
   /** O documento do projeto (vvpost.docs.json), que também abre no editor com o PDF. */
   sourceFile: string
+  /** Os arquivos de tokens da marca (brand/*.tokens.json), relativos ao projeto; podem vir da raiz do workspace (../brand/...). */
+  brand?: string[]
 }
 
 /** O que a aba de documento grava. */
@@ -1404,6 +1411,12 @@ export interface VvpostApi {
   diagramCatalog(): Promise<WorkspaceResult<DiagramCatalog>>
   /** Documentos .md e diagramas .mmd do workspace (o explorador), e o documento do projeto. */
   docsFiles(): Promise<WorkspaceResult<DocsFileList>>
+  /** Um arquivo de tokens da marca, já formatado para a aba (tokens, modos, contraste, problemas). */
+  readBrandFile(file: string): Promise<WorkspaceResult<BrandFileView>>
+  /** O código do frontend conferido contra os tokens (os achados brand-*). */
+  brandFindings(): Promise<WorkspaceResult<{ items: BrandItem[]; scanned: number }>>
+  /** Grava o arquivo de tokens (JSON válido, sem segredo, sem sobrescrever mudança feita fora desde `previous`). */
+  saveBrandFile(input: { file: string; text: string; previous?: string }): Promise<WorkspaceResult<{ file: string }>>
   /** Um documento .md do workspace, para a aba de documento. */
   readMarkdownFile(file: string): Promise<WorkspaceResult<string>>
   /** Grava um .md do workspace (sem segredo, sem sobrescrever mudança feita fora desde `previous`). */

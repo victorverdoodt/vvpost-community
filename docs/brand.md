@@ -98,6 +98,23 @@ rules:
     then: { field: description, function: truthy }
 ```
 
+## No app
+
+Os arquivos de tokens aparecem no explorador, na seção **Marca**, e cada um abre numa aba própria:
+
+- **Tokens**: um bloco por grupo, com a amostra da cor, o nome, o tipo, o valor resolvido (e o alias
+  de onde veio), a descrição e onde o token vive no código (`code`). Com modos, o seletor no topo
+  troca os valores e as amostras.
+- **Contraste**: os pares de `contrast` no modo escolhido, com uma amostra do texto sobre o fundo, a
+  razão WCAG, o mínimo e se passa.
+- **Código do frontend**: **Conferir o código** lê os arquivos de `sources` e lista os achados
+  `brand-*` com arquivo, linha e o `hint`. É sob pedido porque pode ler milhares de arquivos.
+- **JSON**: o arquivo cru, com a sintaxe conferida. **Salvar** (ou `Ctrl+S`) grava só JSON válido,
+  sem o valor de um segredo do workspace e sem sobrescrever o que mudou no disco desde a abertura
+  (um agente pelo MCP, outro editor); sem mudanças na aba, ela relê sozinha.
+
+Problemas do formato (`tokens-invalid`) aparecem no topo, com a linha.
+
 ## Nas páginas
 
 | Diretiva | O que mostra |

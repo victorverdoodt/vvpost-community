@@ -13,7 +13,7 @@ visuais ficam em `src/renderer/src/design-system` ([desenvolvimento](development
 - **Sidebar**: o botão do **Explorador** e os módulos agrupados por intenção. Ela expande para
   mostrar os rótulos, e a escolha fica lembrada.
 - **Explorador** (`Ctrl+Shift+E`): a árvore do projeto, com conectores (e os endpoints e cenários
-  de cada um), fluxos, ambientes, documentos `.md` e diagramas `.mmd`, um filtro e o botão **Novo**.
+  de cada um), fluxos, ambientes, documentos `.md`, diagramas `.mmd` e os tokens da marca (`brand/*.tokens.json`), um filtro e o botão **Novo**.
   Cada item abre numa aba. Abre sozinho em janela larga; em 150% fica fechado até você abrir, e a
   escolha fica lembrada.
 - **Abas do workspace**: uma barra só para tudo o que está aberto, como num editor de código. O
@@ -81,6 +81,7 @@ layouts com nome ficam nas preferências do app, fora dos repositórios.
 | Cenário de teste | O editor de cenários, com as asserções por ambiente |
 | Documento (`.md`) | Seletor **Prévia viva \| Raw \| Lado a lado** no canto direito do cabeçalho: a prévia monta as diretivas `{{> ...}}` e os diagramas com o projeto de agora, e o Raw é o editor com autocomplete das diretivas. `Ctrl+S` salva; o documento do projeto também abre no **Editor com PDF** ([documentation.md](documentation.md)) |
 | Diagrama (`.mmd`) | O editor Mermaid ao vivo, com blocos e ícones |
+| Tokens da marca (`brand/*.tokens.json`) | Os tokens por grupo com a amostra da cor, o modo, o contraste e o código conferido sob pedido; a visão **JSON** edita o arquivo ([brand.md](brand.md#no-app)) |
 | Ambiente (`*.env.json`) | Abre no módulo Secrets, no ambiente escolhido |
 
 **Novo** (`Ctrl+Shift+N`, o `+` da barra de abas ou o botão do explorador) abre um modal para
@@ -153,7 +154,7 @@ edição (desfazer, recortar, copiar, colar). Algumas ações que só existem al
   ou no canvas, executar os cenários, copiar o id ou o caminho, revelar o arquivo e excluir (com
   confirmação). Conector compartilhado é só leitura: não tem excluir. Documento e diagrama também
   renomeiam (`F2`, mudar a pasta move o arquivo) e excluem (`Delete`).
-- O cabeçalho de cada seção do explorador (Conectores, Fluxos, Ambientes, Documentos, Diagramas)
+- O cabeçalho de cada seção do explorador (Conectores, Fluxos, Ambientes, Documentos, Diagramas, Marca)
   tem o menu da seção: criar um item do tipo dela (novo documento, fluxo, ambiente, conector,
   endpoint, cenário...), revelar a pasta, recolher ou expandir a seção e recarregar. Em
   Conectores, também expandir ou recolher tudo, converter para fluxos e mostrar o Compartilhado

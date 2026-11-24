@@ -224,7 +224,7 @@ export function fileMenu(file: string, onOpen: () => void, d: ExplorerMenuDeps):
   ]
 }
 
-export type ExplorerSection = 'connectors' | 'flows' | 'environments' | 'docs' | 'diagrams'
+export type ExplorerSection = 'connectors' | 'flows' | 'environments' | 'docs' | 'diagrams' | 'brand'
 
 /** O estado e as ações da seção que o menu do cabeçalho usa. */
 export interface SectionMenuContext {
@@ -248,7 +248,8 @@ const SECTION_FOLDER: Record<ExplorerSection, string> = {
   flows: 'flows',
   environments: 'environments',
   docs: 'docs',
-  diagrams: 'docs/diagramas'
+  diagrams: 'docs/diagramas',
+  brand: 'brand'
 }
 
 const newItem = (id: string, label: string, icon: LucideIcon, kind: NewKind, d: ExplorerMenuDeps): ContextMenuItem => ({
@@ -289,7 +290,8 @@ export function sectionMenu(section: ExplorerSection, s: SectionMenuContext, d: 
       separator,
       ...docsMenuItems({ kind: 'project' })
     ],
-    diagrams: [newItem('new-diagram', 'Novo diagrama', Shapes, 'diagram', d)]
+    diagrams: [newItem('new-diagram', 'Novo diagrama', Shapes, 'diagram', d)],
+    brand: []
   }[section]
   return [
     ...own,

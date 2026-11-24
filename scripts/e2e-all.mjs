@@ -57,6 +57,7 @@ const SCRIPTS = [
   'e2e-schema-form.mjs',
   'e2e-schema-builder.mjs',
   'e2e-workspace-tabs.mjs',
+  'e2e-brand-tab.mjs',
   'e2e-disk-changes.mjs',
   'e2e-write-problems.mjs',
   'e2e-request-flow.mjs',

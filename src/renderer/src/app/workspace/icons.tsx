@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { BookOpen, FlaskConical, Network, Route, Shapes } from 'lucide-react'
+import { BookOpen, FlaskConical, Network, Palette, Route, Shapes } from 'lucide-react'
 import type { DocRef } from './docs'
 
 const icon = { size: 13, strokeWidth: 1.75, 'aria-hidden': true } as const
@@ -17,5 +17,7 @@ export function docIcon(kind: DocRef['kind']): ReactNode {
       return <BookOpen {...icon} />
     case 'diagram':
       return <Shapes {...icon} />
+    case 'brand':
+      return <Palette {...icon} />
   }
 }

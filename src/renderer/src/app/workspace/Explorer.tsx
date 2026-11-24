@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
-import { ArrowRightLeft, BookOpen, Boxes, ChevronDown, ChevronRight, FlaskConical, FolderOpen, KeyRound, Network, Plus, RefreshCw, Search, Shapes, Workflow } from 'lucide-react'
+import { ArrowRightLeft, BookOpen, Boxes, ChevronDown, ChevronRight, FlaskConical, FolderOpen, KeyRound, Network, Palette, Plus, RefreshCw, Search, Shapes, Workflow } from 'lucide-react'
 import type { CatalogConnector, FlowCatalog } from '@shared/ipc'
 import { byInheritance, unusedShared } from './explorer-tree'
 import { Button, cx, IconButton, MethodBadge, useContextMenu, usePromptDialog, useToast } from '../../design-system'
@@ -159,7 +159,7 @@ export default function Explorer(props: {
 }) {
   const ws = props.ws
   const [flows, setFlows] = useState<FlowCatalog['flows']>([])
-  const [files, setFiles] = useState<{ markdown: string[]; diagrams: string[] }>({ markdown: [], diagrams: [] })
+  const [files, setFiles] = useState<{ markdown: string[]; diagrams: string[]; brand?: string[] }>({ markdown: [], diagrams: [] })
   const [collapsed, setCollapsed] = useState(rememberedCollapsed)
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
   // Bases com conectores que herdam delas começam abertas; aqui ficam as que a pessoa fechou.
@@ -268,6 +268,7 @@ export default function Explorer(props: {
 
   const md = files.markdown.filter((f) => hit(f))
   const mmd = files.diagrams.filter((f) => hit(f))
+  const tokens = (files.brand ?? []).filter((f) => hit(f))
   // Fluxos-base e de requisição aparecem em Conectores, pela herança.
   const compiled = new Set(ws.workspace.flowFiles ?? [])
   const flowList = flows.filter((f) => !compiled.has(f.file) && hit(f.flow.name, f.file))
@@ -588,7 +589,24 @@ export default function Explorer(props: {
             />
           ))
         )}
-        {q && !connectors.length && !flowList.length && !envs.length && !md.length && !mmd.length && (
+        {tokens.length > 0 &&
+          section(
+            'brand',
+            'Marca',
+            tokens.length,
+            tokens.map((f) => (
+              <Row
+                key={f}
+                depth={0}
+                icon={<Palette {...icon} />}
+                label={f.replace(/^(\.\.\/)*brand\//, '')}
+                title={f}
+                active={doc?.kind === 'brand' && doc.file === f}
+                onOpen={() => openDoc({ kind: 'brand', file: f })}
+              />
+            ))
+          )}
+        {q && !connectors.length && !flowList.length && !envs.length && !md.length && !mmd.length && !tokens.length && (
           <p className="px-2 py-3 text-xs text-muted">Nada com “{filter}”.</p>
         )}
       </div>
